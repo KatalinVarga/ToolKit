@@ -1,0 +1,1034 @@
+<!DOCTYPE html>    
+<html class="light" lang="en">    
+<head>    
+    <meta charset="utf-8"/>    
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>    
+    <title>PowerPoint Quality Check </title>    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>    
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>    
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>    
+    <script>    
+        tailwind.config = {    
+            darkMode: "class",    
+            theme: {    
+                extend: {    
+                    colors: {    
+                        "primary": "#e8c547", 
+                        "background-light": "#0a0a0a", 
+                        "background-dark": "#0a0a0a", 
+                        "border-light": "rgba(245,242,237,0.1)", 
+                    },    
+                    fontFamily: { "display": ["DM Sans", "sans-serif"] },    
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},    
+                },    
+            },    
+        }    
+    </script>    
+<style> 
+    :root { 
+         --black:      #0a0a0a; 
+        --mid:        #141414; 
+        --card:       #1a1a1a; 
+        --white:      #f5f2ed; 
+        --accent:     #fcd597; 
+        --accent-dim: rgba(232,197,71,0.10); 
+        --border:     rgba(245,242,237,0.09); 
+        --muted:      rgba(245,242,237,0.45); 
+        --blue:       #7eb8f7; 
+        
+        /* Light theme colors */
+        --light-bg: #ffffff;
+        --light-gray: #f8f9fa;
+        --light-border: #e5e7eb;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+    } 
+ 
+    *, *::before, *::after { box-sizing: border-box; } 
+ 
+    body { 
+        font-family: 'DM Sans', sans-serif; 
+        background: var(--light-gray); 
+        color: var(--text-dark); 
+        -webkit-font-smoothing: antialiased; 
+    } 
+ 
+    /* ── noise overlay ── */ 
+    body::before { 
+        content: ''; 
+        position: fixed; 
+        inset: 0; 
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); 
+        background-size: 200px 200px; 
+        pointer-events: none; 
+        z-index: 0; 
+        opacity: 0.3; 
+    } 
+ 
+    /* ── top nav ── */ 
+    .site-nav { 
+        position: sticky; 
+        top: 0; 
+        z-index: 50; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 14px 32px; 
+        background: white;
+        backdrop-filter: blur(14px); 
+        -webkit-backdrop-filter: blur(14px); 
+        border-bottom: 1px solid var(--border); 
+    } 
+ 
+    .site-nav .logo { 
+         font-family: 'Inter', san-serif;
+        font-size: 1rem; 
+        color: var(--white); 
+        text-decoration: none; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+    } 
+ 
+    .logo-dot { 
+        width: 7px; 
+        height: 7px; 
+        border-radius: 50%; 
+        background: #4285F4;
+        animation: pulse 2s ease-in-out infinite; 
+        flex-shrink: 0; 
+    } 
+ 
+    .site-nav nav { 
+        display: flex; 
+        align-items: center; 
+        gap: 28px; 
+    } 
+ 
+    .site-nav nav a { 
+        color: rgb(59, 53, 53);
+        text-decoration: none; 
+        font-size: 0.78rem; 
+        font-weight: 400; 
+        letter-spacing: 0.05em; 
+        text-transform: uppercase; 
+        transition: color 0.2s; 
+        position: relative; 
+    } 
+ 
+    .site-nav nav a::after { 
+        content: ''; 
+        position: absolute; 
+        left: 0; bottom: -3px; 
+        width: 0; height: 1px; 
+        background: #4285F4; 
+        transition: width 0.25s; 
+        font-weight: bold;
+    } 
+ 
+    .site-nav nav a:hover, 
+    .site-nav nav a.active { 
+        color: #4285F4;
+    } 
+ 
+    .site-nav nav a:hover::after, 
+    .site-nav nav a.active::after { 
+        width: 100%; 
+    } 
+ /* Group Email link and Button on the left */
+.site-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Spacing between Email link and button */
+}
+
+/* Button Styling */
+.font-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  color: #ffffff;
+  border: 1px solid var(--border, #cccccc);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.font-toggle-btn:hover {
+  background: whitesmoke;
+  
+}
+
+/* Active State (When responsive.css is injected) */
+.font-toggle-btn.active {
+
+  color: #ffffff;
+  align-items: center !important; /* Forces this rule to win */;
+  
+}
+
+.font-toggle-btn .material-symbols-outlined {
+  font-size: 1.1em;
+}
+    /* ── app header (below nav) ── */ 
+    header.app-header { 
+        position: sticky; 
+        top: 49px;          /* height of site-nav */ 
+        z-index: 40; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 14px 32px; 
+        background: white;
+        backdrop-filter: blur(14px); 
+        -webkit-backdrop-filter: blur(14px); 
+        border-bottom: 1px solid var(--border); 
+    } 
+ 
+    header.app-header h1 { 
+           font-family: 'Inter', san-serif;
+        font-size: 1.55rem; 
+        font-weight: 400; 
+        letter-spacing: -0.01em; 
+        color: black;
+        background: none; 
+        -webkit-text-fill-color: unset; 
+    } 
+ 
+    /* upload button */ 
+    #uploadPptBtn { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding: 9px 20px; 
+        background: #4285F4; 
+        color: #ffffff;
+        border: none; 
+        border-radius: 2px; 
+            font-family: 'Inter', san-serif;
+        font-size: 0.72rem; 
+        font-weight: 600; 
+        letter-spacing: 0.1em; 
+        text-transform: uppercase; 
+        cursor: pointer; 
+        transition: background 0.2s, transform 0.2s; 
+    } 
+ 
+    #uploadPptBtn:hover { 
+        background: #7ca9f1;
+        transform: translateY(-1px); 
+    } 
+ 
+    #uploadPptBtn .material-symbols-outlined { 
+        font-size: 1.1rem; 
+        color: white; 
+    } 
+ 
+    /* ── stats bar ── */ 
+    #statsBar { 
+        background: var(--light-bg); 
+        border-bottom: 2px solid var(--light-border); 
+        padding: 16px 32px; 
+        box-shadow: 0 1px 3px rgba(202, 192, 192, 0.05);
+    } 
+ 
+    #statsBar .flex { 
+        color: var(--text-dark); 
+        font-size: 16px !important;
+    } 
+    
+    #statsBar .font-bold { 
+        color: #fafafa; 
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    } 
+    
+    #statsBar #totalIssues { 
+        color: #dc2626 !important; 
+        font-size: 20px !important;
+        font-weight: 700 !important;
+    } 
+    
+    #statsBar #slideWarning { 
+        color: #dc2626 !important; 
+        font-size: 18px !important; 
+        font-weight: 700 !important;
+        margin-left: 20px !important;
+    }
+ 
+    /* ── column headers ── */ 
+    .col-headers { 
+        background: var(--light-bg); 
+        border-bottom: 1px solid var(--light-border); 
+        padding: 12px 32px; 
+        position: sticky; 
+        top: 113px;      /* site-nav + app-header */ 
+        z-index: 30; 
+    } 
+ 
+    .col-headers span { 
+        font-size: 14px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.08em !important; 
+        text-transform: uppercase; 
+        color: var(--text-muted) !important; 
+    } 
+ 
+
+    .qa-grid { 
+        display: grid; 
+        grid-template-columns: 5fr 1.5fr; 
+        gap: 2rem; 
+        align-items: stretch; 
+    } 
+  #slideContent {
+        padding-left: 20%;
+  }
+    /* ── empty state ── */ 
+    #emptyState { 
+        margin: 40px 32px; 
+        border: 2px dashed var(--light-border); 
+        border-radius: 12px; 
+        padding: 60px 24px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        background: var(--light-bg); 
+    } 
+ 
+    #emptyState .material-symbols-outlined { 
+        font-size: 3.5rem; 
+        color: grey; 
+        opacity: 0.4;
+    } 
+ 
+    #emptyState p:first-of-type { 
+            font-family: 'Inter', san-serif;
+        font-size: 1.1rem; 
+        color: var(--text-dark); 
+    } 
+ 
+    #emptyState p:last-of-type { 
+        font-size: 0.9rem; 
+        color: var(--text-muted); 
+    } 
+ 
+    /* ── slide block ── */ 
+    .slide-block { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 0.5rem; 
+        padding: 2rem; 
+        border: 1px solid var(--light-border); 
+        background: var(--light-bg); 
+        align-items: stretch; 
+        border-radius: 12px; 
+        margin: 0 32px 20px; 
+        transition: border-color 0.3s, box-shadow 0.3s; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    } 
+ 
+    .slide-block:hover { 
+        border-color: #d1d5db;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+    } 
+ 
+    /* slide number / meta */ 
+    .slide-block .text-xs.text-slate-400 { 
+        font-size: 14px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.05em !important; 
+        text-transform: uppercase; 
+        color: var(--text-muted) !important; 
+        font-family: 'DM Sans', monospace; 
+    } 
+ 
+    .slide-block .text-xs.text-slate-500 { 
+        font-size: 14px !important; 
+        color: var(--text-muted) !important; 
+    } 
+ 
+    .slide-block .border-b { 
+        border-color: var(--light-border) !important; 
+    } 
+ 
+    /* passed badge */ 
+    .slide-block .text-green-600 { 
+        color: #16a34a !important; 
+    } 
+ 
+    .slide-block .material-symbols-outlined.text-sm { 
+        font-size: 1.1rem !important; 
+    } 
+ 
+    /* ── content area (bullet) ── */ 
+ 
+   .content-area { 
+        background: var(--light-bg) !important;
+        padding: 18px 20px !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--light-border) !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+   }
+
+   .content-area,  
+   .content-area span,  
+   .content-area div { 
+        font-size: 16px !important; 
+        line-height: 1.7 !important; 
+        color: var(--text-dark) !important;
+   } 
+ 
+    /* Force minimum 16px for the QA Feed (Right side cards) */ 
+    [class*="bg-rose-50"] p, 
+    [class*="bg-amber-50"] p, 
+    [class*="bg-sky-50"] p, 
+    .error-message,
+    .error-card-message { 
+        font-size: 16px !important; 
+        line-height: 1.7 !important; 
+        color: var(--text-dark) !important; 
+    } 
+ 
+    /* Ensure the labels (SPELLING ISSUE, etc) stay readable */ 
+    .issue-label { 
+       font-size: 13px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.1em !important; 
+    } 
+ 
+    .content-area:hover { 
+        border-color: #d1d5db !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06) !important;
+    } 
+ 
+    /* bullet dot */ 
+    .content-area .text-accent { 
+        color: #d97706 !important; 
+        opacity: 1;
+    } 
+ 
+    /* ── media placeholders (image / table) ── */ 
+    .slide-block .border-dashed { 
+        border-color: var(--light-border) !important; 
+        background: var(--light-gray) !important; 
+        border-radius: 8px; 
+        padding: 24px; 
+    } 
+ 
+    .slide-block .material-symbols-outlined.text-3xl { 
+        color: var(--text-muted) !important; 
+        font-size: 3rem !important;
+    } 
+ 
+    .slide-block p.text-xs.font-bold.uppercase { 
+        color: var(--text-muted) !important; 
+        font-size: 13px !important; 
+        letter-spacing: 0.14em; 
+    } 
+ 
+    /* ── error cards ── */ 
+ 
+    /* spelling — rose */ 
+    .bg-rose-50\/50   { 
+        background: #fff5f5 !important; 
+        border: 2px solid #fecaca !important;
+    } 
+    .border-rose-200\/50 { border-color: #fecaca !important; } 
+    .text-rose-600    { color: #dc2626 !important; } 
+ 
+    /* tone — amber */ 
+    .bg-amber-50\/50  { 
+        background: #fffbeb !important; 
+        border: 2px solid #fde68a !important;
+    } 
+    .border-amber-200\/50 { border-color: #fde68a !important; } 
+    .text-amber-600   { color: #d97706 !important; } 
+ 
+    /* compliance — sky/blue */ 
+    .bg-sky-50\/50    { 
+        background: #f0f9ff !important; 
+        border: 2px solid #bae6fd !important;
+    } 
+    .border-sky-200\/50 { border-color: #bae6fd !important; } 
+    .text-sky-600     { color: #0284c7 !important; } 
+ 
+    /* error card shared */ 
+    [class*="bg-rose-50"], 
+    [class*="bg-amber-50"], 
+    [class*="bg-sky-50"] { 
+        border-radius: 8px !important; 
+        padding: 18px 20px !important; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    } 
+ 
+    [class*="bg-rose-50"] p, 
+    [class*="bg-amber-50"] p, 
+    [class*="bg-sky-50"] p { 
+        font-weight: 500 !important; 
+        color: var(--text-dark) !important; 
+        line-height: 1.7 !important; 
+        margin-top: 6px; 
+        font-size: 16px !important;
+    } 
+ 
+    [class*="text-[10px]"].font-bold.uppercase { 
+        font-size: 13px !important; 
+        letter-spacing: 0.1em !important; 
+    } 
+ 
+    /* ── highlights ── */ 
+    .highlight-spelling { 
+        border-bottom: 2px solid #dc2626; 
+        background-color: rgba(220,38,38,0.12); 
+        cursor: help; 
+        border-radius: 2px; 
+        padding: 2px 4px;
+    } 
+ 
+    .highlight-tone { 
+        border-bottom: 2px solid #d97706; 
+        background-color: rgba(217,119,6,0.12); 
+        cursor: help; 
+        border-radius: 2px; 
+        padding: 2px 4px;
+    } 
+ 
+    /* ── footer ── */ 
+    footer { 
+        background: var(--light-bg); 
+        border-top: 2px solid var(--light-border); 
+        padding: 16px 32px; 
+        font-size: 14px !important; 
+        font-weight: 500; 
+        color: var(--text-muted); 
+        letter-spacing: 0.02em; 
+        box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+    } 
+ 
+    /* system ready */ 
+    .bg-green-50 { 
+        background: #f0fdf4 !important; 
+        border-color: #86efac !important; 
+    } 
+ 
+    .text-green-600 { color: #16a34a !important; } 
+    .bg-green-500   { background-color: #22c55e !important; } 
+ 
+    .text-red-500   { color: #ef4444 !important; } 
+ 
+    /* file name */ 
+    #fileName { 
+        font-size: 14px !important;
+    }
+    
+    #fileName .material-symbols-outlined { 
+        color: var(--text-muted); 
+        font-size: 1.1rem !important; 
+    } 
+ 
+    /* scrollbar */ 
+    .custom-scrollbar::-webkit-scrollbar       { width: 8px; } 
+    .custom-scrollbar::-webkit-scrollbar-track { background: var(--light-gray); } 
+    .custom-scrollbar::-webkit-scrollbar-thumb { 
+        background-color: #d1d5db; 
+        border-radius: 9999px; 
+    } 
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+        background-color: #9ca3af; 
+    }
+ 
+    /* ── animations ── */ 
+    @keyframes pulse { 
+        0%, 100% { opacity: 1; transform: scale(1); } 
+        50%       { opacity: 0.5; transform: scale(0.75); } 
+    } 
+    
+    /* Main content area */
+    main {
+        background: var(--light-gray);
+    }
+    
+    /* Ensure text in stats is proper size */
+    #statsBar span {
+        font-size: 16px !important;
+    }
+    
+</style> 
+   
+</head>    
+    
+<body class="min-h-screen flex flex-col">    
+    
+    <input type="file" id="pptUpload" accept=".pptx" style="display:none"> 
+ 
+    <!-- ── Site Nav ── --> 
+    <div class="site-nav"> 
+   
+        <nav> 
+            <a href="guide_cld.html">Home</a> 
+            <a href="transcript_checker.html">Transcript Checker</a> 
+            <a href="ppt_checker.html" class="active">PowerPoint Checker</a> 
+            <a href="comparison.html">Comparison Tool</a> 
+                <a href="ai_voiceover.html">AI Voiceover Guide</a>
+        </nav> 
+    </div> 
+   
+  </div>
+    <!-- App Header -->    
+    <header class="app-header shrink-0">    
+        <div class="flex items-center gap-3 shrink-0">    
+            <div class="size-10 rounded-xl flex items-center justify-center" style="background:#97f0af;border:1px solid #d5ecdc">    
+                <span class="material-symbols-outlined text-2xl" style="color:#34A853">present_to_all</span>    
+            </div>    
+            <h1>PowerPoint Quality Check</h1> 
+        </div>    
+        <div class="flex items-center gap-4">    
+            <button id="uploadPptBtn"> 
+                <span class="material-symbols-outlined">upload_file</span> 
+                <div class="text-left leading-tight">    
+                    <p style="font-size:0.6rem;letter-spacing:0.12em;opacity:0.6;">STEP 1</p>    
+                    <p>Upload .pptx</p>    
+                </div>    
+            </button> 
+        </div>    
+    </header>    
+    
+    <!-- Stats Bar -->    
+    <div id="statsBar" class="shrink-0" style="display:none">    
+        <div class="flex items-center justify-between">    
+            <div class="flex items-center gap-6">    
+                <div class="flex items-center gap-2">    
+                    <span style="font-weight:600;">Total Slides:</span>    
+                    <span class="font-bold" id="totalSlides">0</span>    
+                    <span id="slideWarning" style="display: none;">Recommended number of slides is 20-25!</span>
+                </div>    
+                <div class="flex items-center gap-2">    
+                    <span style="font-weight:600;">Total Bullets:</span>    
+                    <span class="font-bold" id="totalBullets">0</span>    
+                </div>    
+            </div>    
+            <div class="flex items-center gap-4">    
+                <span style="font-weight:600;">Total Issues:</span>    
+                <span class="font-bold" id="totalIssues">0</span>    
+            </div>    
+        </div>    
+    </div>    
+    
+    <!-- Column Headers -->    
+    <div class="col-headers shrink-0">  
+         <!-- Display Mode / Text Size Button -->
+    <button type="button" class="font-toggle-btn" id="fontToggleBtn" onclick="toggleResponsiveCSS()">
+      <span class="material-symbols-outlined">format_size</span>
+      <span class="btn-text">Text Size: Standard</span>
+    </button>  
+        <div class="qa-grid w-full">    
+            <span id="slideContent">Slide Content</span>    
+            <span>Quality Review Notes</span>    
+        </div>    
+    </div>    
+    
+    <!-- Main -->    
+    <main class="flex-1">    
+        <div id="emptyState">    
+            <span class="material-symbols-outlined">upload_file</span>    
+            <p>Upload PowerPoint to begin</p>    
+            <p>Upload a .pptx file to start the quality check</p>    
+        </div>    
+        <div id="slidesContainer" class="py-8"></div>    
+    </main>    
+    
+    <!-- Footer -->    
+    <footer class="flex items-center justify-between shrink-0">    
+        <div class="flex items-center gap-6">    
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-green-50">    
+                <span class="size-1.5 rounded-full bg-green-500 animate-pulse"></span>    
+                <span class="text-green-600" style="font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">System Ready</span>    
+            </div>    
+            <div id="fileName" class="flex items-center gap-2">    
+                <span class="material-symbols-outlined">description</span>    
+                No file loaded    
+            </div>    
+        </div>    
+        <div class="flex items-center gap-4 uppercase tracking-wide">    
+            <span id="slidesAnalyzed">0 Slides Analysed</span>    
+            <span style="opacity:0.3">|</span>    
+            <span class="text-red-500" id="errorsRemaining">0 Errors Remaining</span>    
+        </div>    
+    </footer>    
+    
+<script>    
+const state = {    
+    fileName: '',    
+    slides: [],    
+    errors: []    
+};    
+   
+const usToUk = {    
+    'analyze':'analyse','analyzes':'analyses','analyzed':'analysed','analyzing':'analysing','analyzer':'analyser',    
+    'organize':'organise','organizes':'organises','organized':'organised','organizing':'organising','organization':'organisation','organizations':'organisations',    
+    'realize':'realise','realizes':'realises','realized':'realised','realizing':'realising','realization':'realisation',    
+    'recognize':'recognise','recognizes':'recognises','recognized':'recognised','recognizing':'recognising',    
+    'summarize':'summarise','summarizes':'summarises','summarized':'summarised','summarizing':'summarising',    
+    'criticize':'criticise','criticizes':'criticises','criticized':'criticised','criticizing':'criticising',    
+    'optimize':'optimise','optimizes':'optimises','optimized':'optimised','optimizing':'optimising','optimization':'optimisation',    
+    'apologize':'apologise','apologizes':'apologises','apologized':'apologised','apologizing':'apologising',    
+    'authorize':'authorise','authorizes':'authorises','authorized':'authorised','authorizing':'authorising','authorization':'authorisation',    
+    'behavior':'behaviour','behaviors':'behaviours','behavioral':'behavioural',    
+    'color':'colour','colors':'colours','colored':'coloured','coloring':'colouring','colorful':'colourful',    
+    'favor':'favour','favors':'favours','favorite':'favourite','favorites':'favourites',    
+    'honor':'honour','honors':'honours','honored':'honoured','honorable':'honourable',    
+    'labor':'labour','labors':'labours','laborer':'labourer',    
+    'neighbor':'neighbour','neighbors':'neighbours','neighborhood':'neighbourhood',    
+    'flavor':'flavour','flavors':'flavours','humor':'humour','rumor':'rumour','rumors':'rumours',    
+    'vapor':'vapour','vigor':'vigour','valor':'valour','endeavor':'endeavour',    
+    'odor':'odour','tumor':'tumour','tumors':'tumours',    
+    'center':'centre','centers':'centres','centered':'centred',    
+    'fiber':'fibre','fibers':'fibres','liter':'litre','liters':'litres',    
+    'meter':'metre','meters':'metres','kilometer':'kilometre','kilometers':'kilometres',    
+    'theater':'theatre','theaters':'theatres',    
+    'defense':'defence','offense':'offence','license':'licence',    
+    'analog':'analogue','catalog':'catalogue','dialog':'dialogue','monolog':'monologue',    
+    'canceled':'cancelled','canceling':'cancelling',    
+    'traveled':'travelled','traveler':'traveller','traveling':'travelling',    
+    'labeled':'labelled','labeling':'labelling','modeled':'modelled','modeling':'modelling',    
+    'program':'programme','programs':'programmes',    
+    'jewelry':'jewellery','gray':'grey','aging':'ageing',    
+    'maneuver':'manoeuvre','maneuvers':'manoeuvres',    
+    'skeptic':'sceptic','skeptical':'sceptical','skepticism':'scepticism',    
+    'tire':'tyre','tires':'tyres','mom':'mum','math':'maths',    
+    'aluminum':'aluminium','mold':'mould','molds':'moulds',    
+    'anemia':'anaemia','anesthetic':'anaesthetic','diarrhea':'diarrhoea',    
+    'pediatric':'paediatric','pediatrics':'paediatrics',    
+    'learned':'learnt','burned':'burnt','dreamed':'dreamt',    
+    'spelled':'spelt','spilled':'spilt','spoiled':'spoilt',    
+    'leaned':'leant','leaped':'leapt','kneeled':'knelt','dwelled':'dwelt'    
+};    
+   
+document.addEventListener('DOMContentLoaded', () => {    
+    document.getElementById('uploadPptBtn').addEventListener('click', () => document.getElementById('pptUpload').click());    
+    document.getElementById('pptUpload').addEventListener('change', handlePptUpload);    
+});    
+   
+async function handlePptUpload(e) {    
+    const file = e.target.files[0];    
+    if (!file) return;    
+    state.fileName = file.name;    
+    document.getElementById('fileName').innerHTML = `<span class="material-symbols-outlined">description</span> ${file.name}`;    
+       
+    const reader = new FileReader();   
+    reader.onload = async function(event) {   
+        const zip = await JSZip.loadAsync(event.target.result);   
+        const slideFiles = Object.keys(zip.files).filter(name => name.startsWith('ppt/slides/slide') && name.endsWith('.xml'));   
+           
+        slideFiles.sort((a, b) => {   
+            const numA = parseInt(a.match(/slide(\d+)\.xml/)[1]);   
+            const numB = parseInt(b.match(/slide(\d+)\.xml/)[1]);   
+            return numA - numB;   
+        });   
+   
+        state.slides = [];   
+        for (const slideFile of slideFiles) {   
+            const content = await zip.file(slideFile).async('string');   
+            const parser = new DOMParser();   
+            const xmlDoc = parser.parseFromString(content, "text/xml");   
+               
+            const slideNum = parseInt(slideFile.match(/slide(\d+)\.xml/)[1]);   
+            const bullets = [];   
+               
+            const shapes = xmlDoc.getElementsByTagNameNS("http://schemas.openxmlformats.org/presentationml/2006/main", "sp"); 
+            for (let i = 0; i < shapes.length; i++) { 
+                const paragraphs = shapes[i].getElementsByTagNameNS("http://schemas.openxmlformats.org/drawingml/2006/main", "p"); 
+                for (let j = 0; j < paragraphs.length; j++) { 
+                    const textRuns = paragraphs[j].getElementsByTagNameNS("http://schemas.openxmlformats.org/drawingml/2006/main", "t"); 
+                    let paraText = ""; 
+                    for (let k = 0; k < textRuns.length; k++) { 
+                        paraText += textRuns[k].textContent; 
+                    } 
+                    if (paraText.trim()) { 
+                        bullets.push(paraText.trim()); 
+                    } 
+                } 
+            } 
+   
+            const hasImages = xmlDoc.getElementsByTagNameNS("http://schemas.openxmlformats.org/presentationml/2006/main", "pic").length > 0;   
+            const hasTables = xmlDoc.getElementsByTagNameNS("http://schemas.openxmlformats.org/drawingml/2006/main", "tbl").length > 0;   
+   
+            state.slides.push({   
+                number: slideNum,   
+                bullets: bullets,   
+                hasImages: hasImages,   
+                hasTables: hasTables   
+            });   
+        }   
+           
+        analyzePpt();   
+        renderUI();   
+    };   
+    reader.readAsArrayBuffer(file);   
+}   
+   
+function renderUI() {   
+    if (!state.slides.length) return;   
+    document.getElementById('emptyState').style.display = 'none';   
+    document.getElementById('statsBar').style.display = 'block';   
+   
+    const totalBullets = state.slides.reduce((acc, slide) => acc + slide.bullets.length, 0);   
+    const totalIssues = state.errors.length;   
+   
+    document.getElementById('totalSlides').textContent = state.slides.length;   
+    document.getElementById('totalBullets').textContent = totalBullets;   
+    document.getElementById('totalIssues').textContent = totalIssues;   
+
+    const slideWarning = document.getElementById('slideWarning');
+    if (state.slides.length > 25) {
+        slideWarning.style.display = 'inline';
+    } else {
+        slideWarning.style.display = 'none';
+    }
+   
+    document.getElementById('slidesAnalyzed').textContent = `${state.slides.length} Slides Analysed`;   
+    document.getElementById('errorsRemaining').textContent = `${totalIssues} ${totalIssues === 1 ? 'Error' : 'Errors'} Remaining`;   
+   
+    document.getElementById('slidesContainer').innerHTML = state.slides.map(renderSlide).join('');   
+}   
+   
+function renderSlide(slide) {   
+    const slideErrors = state.errors.filter(e => e.slideNum === slide.number); 
+    const topLevelErrors = slideErrors.filter(e => e.bulletIndex === undefined && e.type !== 'compliance'); 
+    const mediaComplianceError = slideErrors.find(e => e.type === 'compliance'); 
+       
+    let rowsHtml = slide.bullets.map((bullet, idx) => {   
+        const bulletErrors = slideErrors.filter(e => e.bulletIndex === idx); 
+        let highlighted = escapeHtml(bullet);   
+        Object.entries(usToUk).forEach(([us, uk]) => {   
+            const regex = new RegExp(`(\\b)${us}(\\b)`, 'gi');   
+            highlighted = highlighted.replace(regex, `$1<span class="highlight-spelling">$2${us}$2</span>$1`);   
+        });   
+   
+    return ` 
+    <div class="qa-grid mb-4"> 
+        <div class="content-area"> 
+            <div class="flex gap-2"> 
+                <span class="text-accent mt-1">•</span> 
+                <span>${highlighted}</span> 
+            </div> 
+        </div> 
+        <div class="space-y-3"> 
+            ${bulletErrors.map(renderErrorCard).join('')} 
+        </div> 
+    </div>`; 
+    }).join('');   
+   
+    if (slide.bullets.length === 0 && !slide.hasImages && !slide.hasTables) {   
+        rowsHtml = ` 
+            <div class="qa-grid mb-4"> 
+                <div class="content-area text-base leading-relaxed italic" style="color:var(--text-muted) !important"> 
+                    No text content found on this slide. 
+                </div> 
+                <div></div> 
+            </div>`; 
+    }   
+   
+    if (slide.hasImages) {  
+        rowsHtml += `  
+            <div class="qa-grid mb-4"> 
+                <div class="p-4 border-2 border-dashed flex flex-col items-center justify-center gap-2">  
+                    <span class="material-symbols-outlined text-3xl">image</span>  
+                    <p class="text-xs font-bold uppercase tracking-wider">Image on Page</p>  
+                </div> 
+                <div class="space-y-3"> 
+                    ${mediaComplianceError ? renderErrorCard(mediaComplianceError) : ''} 
+                </div> 
+            </div>`;  
+    }  
+    if (slide.hasTables) {  
+        rowsHtml += `  
+            <div class="qa-grid mb-4"> 
+                <div class="p-4 border-2 border-dashed flex flex-col items-center justify-center gap-2">  
+                    <span class="material-symbols-outlined text-3xl">table_chart</span>  
+                    <p class="text-xs font-bold uppercase tracking-wider">Table on Page</p>  
+                </div> 
+                <div class="space-y-3"> 
+                    ${!slide.hasImages && mediaComplianceError ? renderErrorCard(mediaComplianceError) : ''} 
+                </div> 
+            </div>`;  
+    }  
+   
+    return `   
+        <div class="slide-block">   
+            <div class="w-full"> 
+                <div class="flex items-center justify-between mb-4 pb-2 border-b">   
+                    <div class="flex items-center gap-4"> 
+                        <div class="text-xs text-slate-400 font-mono">Slide ${slide.number}</div>   
+                        <div class="flex gap-2 text-xs text-slate-500">   
+                            <span>${slide.bullets.length} bullets</span>   
+                        </div> 
+                    </div> 
+                    <div class="flex gap-2"> 
+                        ${topLevelErrors.length === 0 && bulletErrorsCount(slideErrors) === 0 && !mediaComplianceError 
+                            ? `<div class="flex items-center gap-1 text-green-600"> 
+                                   <span class="material-symbols-outlined text-sm">verified</span> 
+                                   <span class="text-[10px] font-bold uppercase">Passed</span> 
+                               </div>` 
+                            : '' 
+                        } 
+                    </div> 
+                </div> 
+ 
+                ${topLevelErrors.length > 0 ? ` 
+                <div class="qa-grid mb-6"> 
+                    <div></div> 
+                    <div class="space-y-3"> 
+                        ${topLevelErrors.map(renderErrorCard).join('')} 
+                    </div> 
+                </div>` : ''} 
+ 
+                <div class="flex flex-col"> 
+                    ${rowsHtml} 
+                </div> 
+            </div> 
+        </div>`;   
+} 
+ 
+function bulletErrorsCount(errors) { 
+    return errors.filter(e => e.bulletIndex !== undefined).length; 
+} 
+   
+function renderErrorCard(error) {    
+    const colors = {    
+        spelling:   {bg:'bg-rose-50/50',   border:'border-rose-200/50',   text:'text-rose-600',   icon:'spellcheck'},    
+        tone:       {bg:'bg-amber-50/50',  border:'border-amber-200/50',  text:'text-amber-600',  icon:'psychology'},    
+        compliance: {bg:'bg-sky-50/50',    border:'border-sky-200/50',    text:'text-sky-600',    icon:'info'}    
+    };    
+    const c = colors[error.type] || colors.compliance;    
+       
+    return `    
+        <div class="${c.bg} border ${c.border} rounded-xl">    
+            <div class="flex items-center gap-2 mb-1 ${c.text}">    
+                <span class="material-symbols-outlined text-sm">${c.icon}</span>    
+                <span class="issue-label uppercase">${error.type} Issue</span>    
+            </div>    
+            <p class="error-card-message">${escapeHtml(error.message)}</p>    
+        </div>`;    
+} 
+   
+function escapeHtml(text) {   
+    const d = document.createElement('div');   
+    d.textContent = text;   
+    return d.innerHTML;   
+}   
+   
+function analyzePpt() { 
+    state.errors = []; 
+    state.slides.forEach(slide => { 
+        const slideNum = slide.number; 
+ 
+        // Slide-level bullet count warnings (6+ starts at 7) 
+        const bulletCount = slide.bullets.length; 
+        if (bulletCount >= 7) { 
+            state.errors.push({ 
+                type: 'tone', 
+                slideNum: slideNum, 
+                message: `${bulletCount} bullet points is visually heavy. Recommended: 6 or fewer per slide.`, 
+                severity: 'warning' 
+            }); 
+        } 
+ 
+        slide.bullets.forEach((bullet, index) => { 
+            const words = bullet.split(/\s+/).filter(w => w.length > 0); 
+            const wordCount = words.length; 
+            const charCount = bullet.length; 
+ 
+            // Only one warning per bullet for word count 
+            if (wordCount > 12) { 
+                state.errors.push({ 
+                    type: 'tone', 
+                    slideNum: slideNum, 
+                    bulletIndex: index, 
+                    message: `This bullet is too long (${wordCount} words). Recommended: 10–12 words.`, 
+                    severity: 'warning' 
+                }); 
+            } else if (wordCount > 10) { 
+                state.errors.push({ 
+                    type: 'tone', 
+                    slideNum: slideNum, 
+                    bulletIndex: index, 
+                    message: `Slightly long (${wordCount} words). Recommended: 10–12 words.`, 
+                    severity: 'info' 
+                }); 
+            } 
+ 
+         
+ 
+            // American → British spelling detection (as before) 
+            Object.entries(usToUk).forEach(([us, uk]) => { 
+                const regex = new RegExp(`\\b${us}\\b`, 'gi'); 
+                if (regex.test(bullet)) { 
+                    state.errors.push({ 
+                        type: 'spelling', 
+                        slideNum: slideNum, 
+                        bulletIndex: index, 
+                        text: bullet, 
+                        message: `American spelling detected. Change to British spelling (e.g., "${uk}").`, 
+                        severity: 'error' 
+                    }); 
+                } 
+            }); 
+        }); 
+ 
+        // Images / Tables compliance 
+        if (slide.hasImages || slide.hasTables) { 
+            state.errors.push({ 
+                type: 'compliance', 
+                slideNum: slideNum, 
+                message: "Please ensure the source of your image is clearly stated. If copyrighted, permission may be required, or replace with an alternative.", 
+                severity: 'warning' 
+            }); 
+        } 
+    }); 
+} 
+
+function toggleResponsiveCSS() {
+  const btn = document.getElementById('fontToggleBtn');
+  const btnText = btn.querySelector('.btn-text');
+  let linkTag = document.getElementById('responsive-css-link');
+
+  if (linkTag) {
+    // If responsive.css is already active -> REMOVE IT
+    linkTag.remove();
+    btn.classList.remove('active');
+    btnText.textContent = 'Text Size: Standard';
+    localStorage.setItem('responsiveCSSActive', 'false');
+  } else {
+    // If not active -> INJECT IT INTO <HEAD>
+    linkTag = document.createElement('link');
+    linkTag.id = 'responsive-css-link';
+    linkTag.rel = 'stylesheet';
+    linkTag.href = 'responsive.css';
+    document.head.appendChild(linkTag);
+
+    btn.classList.add('active');
+    btnText.textContent = 'Text Size: Large';
+    localStorage.setItem('responsiveCSSActive', 'true');
+  }
+}
+
+// Keep active preference across page navigations
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('responsiveCSSActive') === 'true') {
+    toggleResponsiveCSS();
+  }
+});
+
+</script>    
+</body>    
+</html>

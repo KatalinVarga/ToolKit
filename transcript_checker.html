@@ -1,0 +1,1289 @@
+<!DOCTYPE html> 
+<html class="light" lang="en"> 
+<head> 
+    <meta charset="utf-8"/> 
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/> 
+    <title>Transcript Quality Check</title> 
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script> 
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/> 
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script> 
+    <script> 
+        tailwind.config = { 
+            darkMode: "class", 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        "primary": "#e8c547", 
+                        "background-light": "#0a0a0a", 
+                        "background-dark": "#0a0a0a", 
+                        "border-light": "rgba(245,242,237,0.1)", 
+                    }, 
+                    fontFamily: { "display": ["DM Sans", "sans-serif"] }, 
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"}, 
+                }, 
+            }, 
+        } 
+  
+function toggleResponsiveCSS() {
+  const btn = document.getElementById('fontToggleBtn');
+  const btnText = btn.querySelector('.btn-text');
+  let linkTag = document.getElementById('responsive-css-link');
+
+  if (linkTag) {
+    // If responsive.css is already active -> REMOVE IT
+    linkTag.remove();
+    btn.classList.remove('active');
+    btnText.textContent = 'Text Size: Standard';
+    localStorage.setItem('responsiveCSSActive', 'false');
+  } else {
+    // If not active -> INJECT IT INTO <HEAD>
+    linkTag = document.createElement('link');
+    linkTag.id = 'responsive-css-link';
+    linkTag.rel = 'stylesheet';
+    linkTag.href = 'responsive.css';
+    document.head.appendChild(linkTag);
+
+    btn.classList.add('active');
+    btnText.textContent = 'Text Size: Large';
+    localStorage.setItem('responsiveCSSActive', 'true');
+  }
+}
+
+// Keep active preference across page navigations
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('responsiveCSSActive') === 'true') {
+    toggleResponsiveCSS();
+  }
+});
+</script>
+  
+<style>
+    :root { 
+        --black:      #0a0a0a; 
+        --mid:        #141414; 
+        --card:       #1a1a1a; 
+        --white:      #f5f2ed; 
+        --accent:     #4285F4;
+        --accent-dim: rgba(232,197,71,0.10); 
+        --border:     rgba(245,242,237,0.09); 
+        --muted:      rgba(245,242,237,0.45); 
+        --blue:       #7eb8f7; 
+        
+        /* Light theme colors */
+        --light-bg: #ffffff;
+        --light-gray: #f8f9fa;
+        --light-border: #e5e7eb;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+    } 
+
+    *, *::before, *::after { box-sizing: border-box; } 
+
+    body { 
+        font-family: 'DM Sans', sans-serif; 
+        background: var(--light-gray); 
+        color: var(--text-dark); 
+        -webkit-font-smoothing: antialiased; 
+    } 
+
+    /* ── noise overlay ── */ 
+    body::before { 
+        content: ''; 
+        position: fixed; 
+        inset: 0; 
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); 
+        background-size: 200px 200px; 
+        pointer-events: none; 
+        z-index: 0; 
+        opacity: 0.3; 
+    } 
+
+    /* ── top nav ── */ 
+    .site-nav { 
+        position: sticky; 
+        top: 0; 
+        z-index: 50; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 14px 32px; 
+        background:white; 
+        backdrop-filter: blur(14px); 
+        -webkit-backdrop-filter: blur(14px); 
+        border-bottom: 1px solid var(--border); 
+    } 
+
+    .site-nav .logo { 
+         font-family: 'Inter', san-serif;
+        font-size: 1rem; 
+        color: grey; 
+        text-decoration: none; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+    } 
+
+    .logo-dot { 
+        width: 7px; 
+        height: 7px; 
+        border-radius: 50%; 
+        background: #34A853;
+        animation: pulse 2s ease-in-out infinite; 
+        flex-shrink: 0; 
+    } 
+
+    .site-nav nav { 
+        display: flex; 
+        align-items: center; 
+        gap: 28px; 
+    } 
+
+    .site-nav nav a { 
+        color: #515152;
+        text-decoration: none; 
+        font-size: 0.78rem; 
+        font-weight: 400; 
+        letter-spacing: 0.05em; 
+        text-transform: uppercase; 
+        transition: color 0.2s; 
+        position: relative; 
+    } 
+
+    .site-nav nav a::after { 
+        content: ''; 
+        position: absolute; 
+        left: 0; bottom: -3px; 
+        width: 0; height: 1px; 
+        background: var(--accent); 
+        transition: width 0.25s; 
+    } 
+
+    .site-nav nav a:hover, 
+    .site-nav nav a.active { 
+        color:#4285F4;
+    } 
+
+    .site-nav nav a:hover::after, 
+    .site-nav nav a.active::after { 
+        width: 100%; 
+    } 
+/* Button Styling */
+.font-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8f9fa;
+  color: #393b3e;
+  border: 1px solid var(--border, #eff0f0);
+  border-radius: 0px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  max-width: 20%;
+  padding-left: 5%;
+}
+.font-toggle-btn:hover {
+ 
+  border-color: #474f51;
+}
+
+/* ── app header (below nav) ── */ 
+    header.app-header { 
+        position: sticky; 
+        top: 49px; 
+        z-index: 40; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 14px 32px; 
+        background: #fafafa; 
+        backdrop-filter: blur(14px); 
+        -webkit-backdrop-filter: blur(14px); 
+        border-bottom: 1px solid var(--border); 
+    } 
+
+    header.app-header h1 { 
+            font-family: 'Inter', san-serif;
+        font-size: 1.55rem; 
+        font-weight: 400; 
+        letter-spacing: -0.01em; 
+        color: black;
+        background: none; 
+        -webkit-text-fill-color: unset; 
+    } 
+
+    /* upload button */ 
+    #uploadTranscriptBtn { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding: 9px 20px; 
+        background: var(--accent); 
+        color: white; 
+        border: none; 
+        border-radius: 2px; 
+        font-family: 'DM Sans', sans-serif; 
+        font-size: 0.72rem; 
+        font-weight: 600; 
+        letter-spacing: 0.1em; 
+        text-transform: uppercase; 
+        cursor: pointer; 
+        transition: background 0.2s, transform 0.2s; 
+    } 
+
+    #uploadTranscriptBtn:hover { 
+        background: #7db0dd; 
+        transform: translateY(-1px); 
+    } 
+
+    #uploadTranscriptBtn .material-symbols-outlined { 
+        font-size: 1.1rem; 
+        color: white; 
+    } 
+#slideContent {
+    padding-left: 20%;
+}
+    /* ── stats bar ── */ 
+    #statsBar { 
+        background: var(--light-bg); 
+        border-bottom: 2px solid var(--light-border); 
+        padding: 16px 32px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    } 
+
+    #statsBar .flex { 
+        color: var(--text-dark); 
+        font-size: 16px !important;
+    } 
+    
+    #statsBar .font-bold { 
+        color: var(--text-dark); 
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    } 
+    
+    #statsBar #totalIssues { 
+        color: #dc2626 !important; 
+        font-size: 20px !important;
+        font-weight: 700 !important;
+    } 
+    
+    #statsBar #minutesWarning { 
+        color: #dc2626 !important; 
+        font-size: 18px !important; 
+        font-weight: 700 !important;
+        margin-left: 20px !important;
+    }
+
+    #statsBar #totalMinutes {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    }
+
+    #statsBar span {
+        font-size: 16px !important;
+        font-weight: 600;
+    }
+
+    /* ── column headers ── */ 
+    .col-headers { 
+        background: var(--light-bg); 
+        border-bottom: 1px solid var(--light-border); 
+        padding: 12px 32px; 
+        position: sticky; 
+        top: 113px; 
+        z-index: 30; 
+    } 
+
+    .col-headers span { 
+        font-size: 14px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.08em !important; 
+        text-transform: uppercase; 
+        color: var(--text-muted) !important; 
+    } 
+
+    /* Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { 
+        width: 8px; 
+    }
+    .custom-scrollbar::-webkit-scrollbar-track { 
+        background: var(--light-gray); 
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb { 
+        background-color: #d1d5db; 
+        border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+        background-color: #9ca3af; 
+    }
+
+    /* Lecture block */
+    .lecture-block {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 2rem;
+        padding: 2rem;
+        border: 1px solid var(--light-border);
+        background-color: var(--light-bg);
+        align-items: flex-start;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        margin-left: 2rem;
+        margin-right: 2rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: box-shadow 0.3s, border-color 0.3s;
+    }
+
+    .lecture-block:hover {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        border-color: #d1d5db;
+    }
+
+    /* Content area */
+    .content-area {
+        min-height: 120px;
+        outline: none;
+        border-radius: 8px;
+        padding: 18px 20px;
+        background-color: var(--light-bg);
+        border: 1px solid var(--light-border);
+        transition: all 0.3s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        font-size: 16px !important;
+        line-height: 1.7 !important;
+        color: var(--text-dark) !important;
+    }
+
+    .content-area:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+    }
+
+    .content-area:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    /* Highlights */
+    .highlight-grammar  {
+        border-bottom: 2px solid #dc2626;
+        background-color: rgba(220,38,38,0.12);
+        cursor: help;
+        border-radius: 2px;
+        padding: 2px 4px;
+    }
+
+    .highlight-spelling {
+        border-bottom: 2px solid #dc2626;
+        background-color: rgba(220,38,38,0.12);
+        cursor: help;
+        border-radius: 2px;
+        padding: 2px 4px;
+    }
+
+    .highlight-tone {
+        border-bottom: 2px solid #d97706;
+        background-color: rgba(217,119,6,0.12);
+        cursor: help;
+        border-radius: 2px;
+        padding: 2px 4px;
+    }
+
+    .highlight-futureproof {
+        border-bottom: 2px solid #7c3aed;
+        background-color: rgba(124,58,237,0.12);
+        cursor: help;
+        border-radius: 2px;
+        padding: 2px 4px;
+    }
+
+    .highlight-style {
+        border-bottom: 2px solid #a855f7;
+        background-color: #faf5ff;
+        cursor: help;
+    }
+
+    .highlight-formatting {
+        border-bottom: 2px solid #3b82f6;
+        background-color: #eff6ff;
+        cursor: help;
+    }
+
+    /* ── empty state ── */ 
+    #emptyState { 
+        margin: 40px 32px; 
+        border: 2px dashed var(--light-border); 
+        border-radius: 12px; 
+        padding: 60px 24px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        background: var(--light-bg); 
+    } 
+
+    #emptyState .material-symbols-outlined { 
+        font-size: 3.5rem; 
+        color: var(--text-muted); 
+        opacity: 0.4;
+    } 
+
+    #emptyState p:first-of-type { 
+           font-family: 'Inter', san-serif;
+        font-size: 1.1rem; 
+        color: var(--text-dark); 
+    } 
+
+    #emptyState p:last-of-type { 
+        font-size: 0.9rem; 
+        color: var(--text-muted); 
+    }
+
+    /* Section meta */
+    .lecture-block .text-xs.text-slate-400 { 
+        font-size: 14px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.05em !important; 
+        text-transform: uppercase; 
+        color: var(--text-muted) !important; 
+        font-family: 'DM Sans', monospace; 
+    } 
+
+    .lecture-block .text-xs.text-slate-500 { 
+        font-size: 14px !important; 
+        color: var(--text-muted) !important; 
+    }
+
+    /* Error cards */
+    .bg-red-50\/50, .bg-rose-50\/50 {
+        background: #fff5f5 !important;
+        border: 2px solid #fecaca !important;
+        border-radius: 8px !important;
+        padding: 18px 20px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+
+    .bg-amber-50\/50 {
+        background: #fffbeb !important;
+        border: 2px solid #fde68a !important;
+        border-radius: 8px !important;
+        padding: 18px 20px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+
+    .bg-indigo-50\/50 {
+        background: #eef2ff !important;
+        border: 2px solid #c7d2fe !important;
+        border-radius: 8px !important;
+        padding: 18px 20px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+
+    .bg-violet-50\/50 {
+        background: #f5f3ff !important;
+        border: 2px solid #ddd6fe !important;
+        border-radius: 8px !important;
+        padding: 18px 20px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+
+    .bg-sky-50\/50 {
+        background: #f0f9ff !important;
+        border: 2px solid #bae6fd !important;
+        border-radius: 8px !important;
+        padding: 18px 20px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }
+
+    .bg-green-50 {
+        background: #f0fdf4 !important;
+        border: 2px solid #86efac !important;
+        border-radius: 8px !important;
+        padding: 18px 20px !important;
+    }
+
+    .text-red-600, .text-rose-600 { color: #dc2626 !important; }
+    .text-amber-600 { color: #d97706 !important; }
+    .text-indigo-600 { color: #4f46e5 !important; }
+    .text-violet-600 { color: #7c3aed !important; }
+    .text-sky-600 { color: #0284c7 !important; }
+    .text-green-600 { color: #16a34a !important; }
+
+    .border-red-200\/50, .border-rose-200\/50 { border-color: #fecaca !important; }
+    .border-amber-200\/50 { border-color: #fde68a !important; }
+    .border-indigo-200\/50 { border-color: #c7d2fe !important; }
+    .border-violet-200\/50 { border-color: #ddd6fe !important; }
+    .border-sky-200\/50 { border-color: #bae6fd !important; }
+    .border-green-100 { border-color: #86efac !important; }
+
+    [class*="bg-rose-50"] p, 
+    [class*="bg-red-50"] p,
+    [class*="bg-amber-50"] p, 
+    [class*="bg-indigo-50"] p,
+    [class*="bg-violet-50"] p,
+    [class*="bg-sky-50"] p,
+    [class*="bg-green-50"] p {
+        font-weight: 500 !important; 
+        color: var(--text-dark) !important; 
+        line-height: 1.7 !important; 
+        margin-top: 6px; 
+        font-size: 16px !important;
+    }
+
+    .text-\[10px\].font-bold.uppercase,
+    [class*="text-[10px]"].font-bold.uppercase { 
+        font-size: 13px !important; 
+        letter-spacing: 0.1em !important; 
+    }
+
+    /* ── footer ── */ 
+    footer { 
+        background: var(--light-bg); 
+        border-top: 2px solid var(--light-border); 
+        padding: 16px 32px; 
+        font-size: 14px !important; 
+        font-weight: 500; 
+        color: var(--text-muted); 
+        letter-spacing: 0.02em; 
+        box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+    } 
+
+    .bg-green-500 { background-color: #22c55e !important; }
+    .text-red-500 { color: #ef4444 !important; }
+
+    #fileName { 
+        font-size: 14px !important;
+    }
+    
+    #fileName .material-symbols-outlined { 
+        color: var(--text-muted); 
+        font-size: 1.1rem !important; 
+    }
+
+    /* ── animations ── */ 
+    @keyframes pulse { 
+        0%, 100% { opacity: 1; transform: scale(1); } 
+        50%       { opacity: 0.5; transform: scale(0.75); } 
+    }
+
+    /* Main content area */
+    main {
+        background: var(--light-gray);
+    }
+</style>
+ <!-- <link rel="stylesheet" href="responsive.css"> -->
+</head> 
+ 
+<body class="min-h-screen flex flex-col"> 
+ 
+    <input type="file" id="transcriptUpload" accept=".docx,.doc" style="display:none"> 
+ 
+    <!-- ── Site Nav ── --> 
+    <div class="site-nav"> 
+       
+        <nav> 
+            <a href="guide_cld.html">Home</a> 
+            <a href="transcript_checker.html" class="active">Transcript Checker</a> 
+            <a href="ppt_checker.html">PowerPoint Checker</a> 
+            <a href="comparison.html">Comparison Tool</a>
+                <a href="ai_voiceover.html">AI Voiceover Guide</a>
+                        </div> 
+ <!-- Display Mode / Text Size Button -->
+    <button type="button" class="font-toggle-btn" id="fontToggleBtn" onclick="toggleResponsiveCSS()">
+      <span class="material-symbols-outlined">format_size</span>
+      <span class="btn-text">Text Size: Standard</span>
+    </button>
+  </div>
+        </nav> 
+ 
+    <!-- Header --> 
+    <header class="app-header shrink-0"> 
+        <div class="flex items-center gap-3 shrink-0"> 
+            <div class="size-10 rounded-xl flex items-center justify-center" style="background:#bafbcb;border:1px solid rgba(139, 218, 158, 0.2)"> 
+                <span class="material-symbols-outlined text-2xl" style="color:#34A853">sync_alt</span> 
+            </div> 
+            
+            <h1 >Transcript Quality Check</h1> 
+        </div> 
+        <div class="flex items-center gap-4"> 
+            <button id="uploadTranscriptBtn"> 
+                <span class="material-symbols-outlined">upload_file</span> 
+                <div class="text-left leading-tight"> 
+                    <p style="font-size:0.6rem;letter-spacing:0.12em;opacity:0.6;">STEP 1</p> 
+                    <p>Upload Transcript (Word)</p> 
+                </div> 
+            </button> 
+        </div> 
+   
+    </header> 
+ 
+    <!-- Stats Bar --> 
+    <div id="statsBar" class="shrink-0" style="display:none"> 
+        <div class="flex items-center justify-between"> 
+            <div class="flex items-center gap-6"> 
+                <div class="flex items-center gap-2"> 
+                    <span style="font-weight:600;">Total Words:</span> 
+                    <span class="font-bold" id="totalWords">0</span> 
+                </div> 
+                <div class="flex items-center gap-2"> 
+                    <span style="font-weight:600;">Total Characters:</span> 
+                    <span class="font-bold" id="totalChars">0</span> 
+                </div> 
+                <div class="flex items-center gap-2"> 
+                    <span style="font-weight:600;">Estimated Minutes:</span> 
+                    <span class="font-bold" id="totalMinutes">0</span> 
+                    <span id="minutesWarning" style="display:none">⚠️ Estimated length exceeds recommended 25 minutes.</span> 
+                </div> 
+            </div> 
+            <div class="flex items-center gap-4"> 
+                <span style="font-weight:600;">Total Issues:</span> 
+                <span class="font-bold" id="totalIssues">0</span> 
+            </div> 
+        </div> 
+    </div> 
+ 
+    <!-- Column Headers sticky below header --> 
+    <div class="col-headers shrink-0"> 
+        <div class="grid grid-cols-[1fr_320px] gap-6 w-full"> 
+            <span id="slideContent">Transcript Section</span> 
+            <span>Quality Review Notes</span> 
+        </div> 
+    </div> 
+ 
+    <!-- Main --> 
+    <main class="flex-1"> 
+        <div id="emptyState"> 
+            <span class="material-symbols-outlined">upload_file</span> 
+            <p>Upload transcript to begin</p> 
+            <p>Upload Word transcript to start quality check</p> 
+        </div> 
+        <div id="slidesContainer" class="py-8"></div> 
+    </main> 
+ 
+    <!-- Footer --> 
+    <footer class="flex items-center justify-between shrink-0"> 
+        <div class="flex items-center gap-6"> 
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-green-50"> 
+                <span class="size-1.5 rounded-full bg-green-500 animate-pulse"></span> 
+                <span class="text-green-600" style="font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">System Ready</span> 
+            </div> 
+            <div id="fileName" class="flex items-center gap-2"> 
+                <span class="material-symbols-outlined">description</span> 
+                No file loaded 
+            </div> 
+        </div> 
+        <div class="flex items-center gap-4 uppercase tracking-wide"> 
+            <span id="slidesAnalyzed">0 Sections Analysed</span> 
+            <span style="opacity:0.3">|</span> 
+            <span class="text-red-500" id="errorsRemaining">0 Errors Remaining</span> 
+        </div> 
+    </footer> 
+ 
+<script> 
+function toggleResponsiveCSS() {
+  const btn = document.getElementById('fontToggleBtn');
+  const btnText = btn.querySelector('.btn-text');
+  let linkTag = document.getElementById('responsive-css-link');
+
+  if (linkTag) {
+    // If responsive.css is already active -> REMOVE IT
+    linkTag.remove();
+    btn.classList.remove('active');
+    btnText.textContent = 'Text Size: Standard';
+    localStorage.setItem('responsiveCSSActive', 'false');
+  } else {
+    // If not active -> INJECT IT INTO <HEAD>
+    linkTag = document.createElement('link');
+    linkTag.id = 'responsive-css-link';
+    linkTag.rel = 'stylesheet';
+    linkTag.href = 'responsive.css';
+    document.head.appendChild(linkTag);
+
+    btn.classList.add('active');
+    btnText.textContent = 'Text Size: Large';
+    localStorage.setItem('responsiveCSSActive', 'true');
+  }
+}
+
+// Keep active preference across page navigations
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('responsiveCSSActive') === 'true') {
+    toggleResponsiveCSS();
+  }
+});
+const state = { 
+    originalText: '', 
+    fileName: '', 
+    slides: [], 
+    title: '', 
+    errors: [] 
+}; 
+
+const usToUk = { 
+    'analyze':'analyse','analyzes':'analyses','analyzed':'analysed','analyzing':'analysing','analyzer':'analyser', 
+    'organize':'organise','organizes':'organises','organized':'organised','organizing':'organising','organization':'organisation','organizations':'organisations', 
+    'realize':'realise','realizes':'realises','realized':'realised','realizing':'realising','realization':'realisation', 
+    'recognize':'recognise','recognizes':'recognises','recognized':'recognised','recognizing':'recognising', 
+    'summarize':'summarise','summarizes':'summarises','summarized':'summarised','summarizing':'summarising', 
+    'criticize':'criticise','criticizes':'criticises','criticized':'criticised','criticizing':'criticising', 
+    'optimize':'optimise','optimizes':'optimises','optimized':'optimised','optimizing':'optimising','optimization':'optimisation', 
+    'apologize':'apologise','apologizes':'apologises','apologized':'apologised','apologizing':'apologising', 
+    'authorize':'authorise','authorizes':'authorises','authorized':'authorised','authorizing':'authorising','authorization':'authorisation', 
+    'behavior':'behaviour','behaviors':'behaviours','behavioral':'behavioural', 
+    'color':'colour','colors':'colours','colored':'coloured','coloring':'colouring','colorful':'colourful', 
+    'favor':'favour','favors':'favours','favorite':'favourite','favorites':'favourites', 
+    'honor':'honour','honors':'honours','honored':'honoured','honorable':'honourable', 
+    'labor':'labour','labors':'labours','laborer':'labourer', 
+    'neighbor':'neighbour','neighbors':'neighbours','neighborhood':'neighbourhood', 
+    'flavor':'flavour','flavors':'flavours','humor':'humour','rumor':'rumour','rumors':'rumours', 
+    'vapor':'vapour','vigor':'vigour','valor':'valour','endeavor':'endeavour', 
+    'odor':'odour','tumor':'tumour','tumors':'tumours', 
+    'center':'centre','centers':'centres','centered':'centred', 
+    'fiber':'fibre','fibers':'fibres','liter':'litre','liters':'litres', 
+    'meter':'metre','meters':'metres','kilometer':'kilometre','kilometers':'kilometres', 
+    'theater':'theatre','theaters':'theatres', 
+    'defense':'defence','offense':'offence','license':'licence', 
+    'analog':'analogue','catalog':'catalogue','dialog':'dialogue','monolog':'monologue', 
+    'canceled':'cancelled','canceling':'cancelling', 
+    'traveled':'travelled','traveler':'traveller','traveling':'travelling', 
+    'labeled':'labelled','labeling':'labelling','modeled':'modelled','modeling':'modelling', 
+    'program':'programme','programs':'programmes', 
+    'jewelry':'jewellery','gray':'grey','aging':'ageing', 
+    'maneuver':'manoeuvre','maneuvers':'manoeuvres', 
+    'skeptic':'sceptic','skeptical':'sceptical','skepticism':'scepticism', 
+    'tire':'tyre','tires':'tyres','mom':'mum','math':'maths', 
+    'aluminum':'aluminium','mold':'mould','molds':'moulds', 
+    'anemia':'anaemia','anesthetic':'anaesthetic','diarrhea':'diarrhoea', 
+    'pediatric':'paediatric','pediatrics':'paediatrics', 
+    'learned':'learnt','burned':'burnt','dreamed':'dreamt', 
+    'spelled':'spelt','spilled':'spilt','spoiled':'spoilt', 
+    'leaned':'leant','leaped':'leapt','kneeled':'knelt','dwelled':'dwelt' 
+}; 
+ 
+const grammarRules = [ 
+    { pattern:/\bcould\s+of\b/gi, message:"Please use 'could have' instead of 'could of'" }, 
+    { pattern:/\bshould\s+of\b/gi, message:"Please use 'should have' instead of 'should of'" }, 
+    { pattern:/\bwould\s+of\b/gi, message:"Please use 'would have' instead of 'would of'" }, 
+    { pattern:/\bbetween\s+you\s+and\s+I\b/gi, message:"Please use 'between you and me'" }, 
+    { pattern:/\bthere\s+is\s+\w+\s+and\b/gi, message:"Please use 'there are' for plural subjects" }
+];
+
+const futureProofingRules = [
+    { pattern:/\b(?:lecture|chapter)\s+\d+(?:\.\d+)?\b/gi, message:"Avoid referencing specific lecture or chapter numbers as content may be reordered or reused in different contexts" }
+]; 
+ 
+const idioms = [ 
+    'a piece of cake','break a leg','hit the nail on the head','let the cat out of the bag', 
+    'once in a blue moon','the ball is in your court','bite off more than you can chew', 
+    'break the ice','cut corners','get out of hand','go the extra mile', 
+    'hang in there','on the same page','pull yourself together','under the weather', 
+    'come up with','figure out','look into','put up with','run into','get across', 
+    'give up','carry on','bring up','call off','turn down','look after' 
+]; 
+ 
+document.addEventListener('DOMContentLoaded', () => { 
+    document.getElementById('uploadTranscriptBtn').addEventListener('click', () => document.getElementById('transcriptUpload').click()); 
+    document.getElementById('transcriptUpload').addEventListener('change', handleTranscriptUpload); 
+}); 
+ 
+async function handleTranscriptUpload(e) { 
+    const file = e.target.files[0]; 
+    if (!file) return; 
+    state.fileName = file.name; 
+    document.getElementById('fileName').innerHTML = `<span class="material-symbols-outlined">description</span> ${file.name}`; 
+    const reader = new FileReader(); 
+    reader.onload = async function(event) { 
+        try { 
+            const result = await mammoth.extractRawText({arrayBuffer: event.target.result}); 
+            state.originalText = result.value; 
+            parseTranscript(); 
+            analyzeTranscript(); 
+            renderUI(); 
+        } catch(err) { alert('Error reading document: ' + err.message); } 
+    }; 
+    reader.readAsArrayBuffer(file); 
+} 
+ 
+function parseTranscript() { 
+    const text = state.originalText; 
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    state.title = lines[0] || 'Untitled Lecture'; 
+    
+    // Collect ALL potential slide markers from different formats
+    let allMarkers = [];
+    
+    // Pattern 1: Explicit "SLIDE X" or "Slide X"
+    const explicitPattern = /(?:^|\n)\s*(?:SLIDE|Slide)\s+(\d+)(?:\s*[-:\.]|\s|$)/gi;
+    const explicitMatches = [...text.matchAll(explicitPattern)];
+    explicitMatches.forEach(m => {
+        allMarkers.push({
+            number: parseInt(m[1]),
+            position: m.index,
+            format: 'SLIDE',
+            priority: 1
+        });
+    });
+    
+    // Pattern 2: Combined slides (5 & 6 -, 3 and 4 -)
+    const combinedPattern = /(?:^|\n)\s*(\d+)\s*(?:&|and)\s*(\d+)\s*[-–—\.]\s+([^\n]{10,})/gmi;
+    const combinedMatches = [...text.matchAll(combinedPattern)];
+    combinedMatches.forEach(m => {
+        const num1 = parseInt(m[1]);
+        const num2 = parseInt(m[2]);
+        const position = m.index;
+        
+        // Add first number at this position
+        allMarkers.push({
+            number: num1,
+            position: position,
+            format: 'combined',
+            priority: 2,
+            combinedWith: num2
+        });
+        
+        // Add second number at same position (will share content)
+        allMarkers.push({
+            number: num2,
+            position: position,
+            format: 'combined',
+            priority: 2,
+            combinedWith: num1
+        });
+    });
+    
+    // Pattern 3: Number with separator (1 -, 2., 3 -, etc.)
+    const numSepPattern = /(?:^|\n)\s*(\d+)\s*[-–—\.]\s+([^\n]{10,})/gm;
+    let numCandidates = [...text.matchAll(numSepPattern)].map(m => ({
+        number: parseInt(m[1]),
+        position: m.index,
+        content: m[2],
+        fullMatch: m[0]
+    }));
+    
+    // Filter number candidates to avoid list items
+    numCandidates = numCandidates.filter((cand, idx, arr) => {
+        const {number, position, content} = cand;
+        
+        // Skip if already found as explicit SLIDE or combined
+        if (allMarkers.some(m => m.number === number && Math.abs(m.position - position) < 50)) {
+            return false;
+        }
+        
+        // Get surrounding context
+        const before = text.substring(Math.max(0, position - 200), position);
+        
+        // Rule 1: Reject if list context words immediately before
+        if (/(?:including|such as|follows?|namely|specifically|examples?|are|were):\s*$/i.test(before)) {
+            return false;
+        }
+        
+        // Rule 2: Check spacing between consecutive numbers
+        if (idx > 0) {
+            const prev = arr[idx - 1];
+            const gap = position - prev.position;
+            
+            // If numbers are consecutive and very close together (< 100 chars), likely a list
+            if (number === prev.number + 1 && gap < 100) {
+                return false;
+            }
+            
+            // If well-spaced (> 200 chars), likely slides
+            if (gap > 200) {
+                return true;
+            }
+        }
+        
+        // Rule 3: Content length check - slides usually have more content
+        if (content.length < 25) {
+            return false;
+        }
+        
+        // Rule 4: Check for sequence pattern
+        const nearbyNumbers = arr.filter(c => 
+            Math.abs(c.position - position) < 2500 && c.number !== number
+        ).map(c => c.number);
+        
+        const hasSequence = nearbyNumbers.filter(n => 
+            Math.abs(n - number) <= 2
+        ).length >= 2;
+        
+        if (hasSequence) {
+            return true;
+        }
+        
+        // Default: accept if content is substantial
+        return content.length > 40;
+    });
+    
+    // Add filtered number candidates to markers
+    numCandidates.forEach(c => {
+        allMarkers.push({
+            number: c.number,
+            position: c.position,
+            format: 'number',
+            priority: 3
+        });
+    });
+    
+    // Remove duplicates (keep higher priority = lower number)
+    const uniqueMarkers = new Map();
+    allMarkers.forEach(marker => {
+        const key = marker.number;
+        const existing = uniqueMarkers.get(key);
+        
+        if (!existing || marker.priority < existing.priority) {
+            uniqueMarkers.set(key, marker);
+        }
+    });
+    
+    allMarkers = Array.from(uniqueMarkers.values());
+    
+    // Sort by position in document
+    allMarkers.sort((a, b) => a.position - b.position);
+    
+    // Check for gaps and try to recover missing slides
+    if (allMarkers.length > 1) {
+        const numbers = allMarkers.map(m => m.number).sort((a, b) => a - b);
+        const min = Math.min(...numbers);
+        const max = Math.max(...numbers);
+        
+        const missing = [];
+        for (let i = min; i <= max; i++) {
+            if (!numbers.includes(i)) {
+                missing.push(i);
+            }
+        }
+        
+        // Try to find missing slides
+        missing.forEach(num => {
+            // Look for the number with various formats
+            const patterns = [
+                new RegExp(`(?:^|\\n)\\s*${num}\\s+([A-Z][^\\n]{15,})`, 'gm'),  // "5 Something"
+                new RegExp(`(?:^|\\n)\\s*(?:SLIDE|Slide)\\s+${num}`, 'gi')       // "SLIDE 5"
+            ];
+            
+            for (let pattern of patterns) {
+                const matches = [...text.matchAll(pattern)];
+                
+                if (matches.length > 0) {
+                    // Find the match between surrounding slides
+                    const prevSlideNum = Math.max(...numbers.filter(n => n < num), 0);
+                    const nextSlideNum = Math.min(...numbers.filter(n => n > num), Infinity);
+                    
+                    const prevPos = allMarkers.find(m => m.number === prevSlideNum)?.position || 0;
+                    const nextPos = allMarkers.find(m => m.number === nextSlideNum)?.position || text.length;
+                    
+                    for (let match of matches) {
+                        if (match.index > prevPos && match.index < nextPos) {
+                            const before = text.substring(Math.max(0, match.index - 50), match.index);
+                            const isNewSection = /[\.!?]\s*$/i.test(before) || /^\s*$/.test(before);
+                            
+                            if (isNewSection) {
+                                allMarkers.push({
+                                    number: num,
+                                    position: match.index,
+                                    format: 'recovered',
+                                    priority: 4
+                                });
+                                break;
+                            }
+                        }
+                    }
+                    if (allMarkers.some(m => m.number === num)) break;
+                }
+            }
+        });
+        
+        // Re-sort after adding recovered slides
+        allMarkers.sort((a, b) => a.position - b.position);
+    }
+    
+    // Build slides array
+    state.slides = [];
+    
+    if (allMarkers.length === 0) {
+        state.slides.push({
+            number: 1, 
+            title: 'Main Content', 
+            content: text.replace(state.title, '').trim(), 
+            startPos: 0, 
+            endPos: text.length
+        });
+    } else {
+        allMarkers.forEach((marker, idx) => {
+            const {number, position, combinedWith} = marker;
+            
+            // Find end of header line
+            const lineEnd = text.indexOf('\n', position);
+            const headerEnd = lineEnd !== -1 ? lineEnd : position;
+            
+            // Extract title from header line
+            const headerLine = text.substring(position, headerEnd).trim();
+            let titleMatch = headerLine.match(/^\d+\s*(?:&|and)\s*\d+\s*[-–—\.\s]*(.+)/) ||  // "5 & 6 - Title"
+                            headerLine.match(/^\d+\s*[-–—\.\s]+(.+)/) ||                      // "5 - Title"
+                            headerLine.match(/^(?:SLIDE|Slide)\s+\d+\s*[-:\.\s]*(.+)/i);     // "SLIDE 5 - Title"
+            
+            let slideTitle = (titleMatch && titleMatch[1] && titleMatch[1].trim()) || `Section ${number}`;
+            
+            // If combined slide, add note to title
+            if (combinedWith) {
+                const nums = [number, combinedWith].sort((a,b) => a - b);
+                slideTitle = `Slides ${nums[0]} & ${nums[1]} - ${slideTitle}`;
+            }
+            
+            // Content starts after header
+            const startPos = headerEnd + 1;
+            
+            // Content ends at next slide (but skip combined duplicates)
+            let nextMarkerIdx = idx + 1;
+            while (nextMarkerIdx < allMarkers.length && 
+                   allMarkers[nextMarkerIdx].position === position) {
+                nextMarkerIdx++;
+            }
+            
+            const endPos = nextMarkerIdx < allMarkers.length
+                ? allMarkers[nextMarkerIdx].position 
+                : text.length;
+            
+            const content = text.substring(startPos, endPos).trim();
+            
+            // Skip if this is a duplicate combined slide (already added)
+            if (combinedWith && state.slides.some(s => 
+                s.number === number && s.startPos === startPos
+            )) {
+                return;
+            }
+            
+            state.slides.push({
+                number,
+                title: slideTitle,
+                content,
+                startPos,
+                endPos,
+                isCombined: !!combinedWith
+            });
+        });
+    }
+} 
+ 
+function analyzeTranscript() { 
+    state.errors = []; 
+    const totalWords = countWords(state.originalText); 
+    const totalMinutes = Math.round(totalWords/100); 
+    if (totalWords < 1800) { 
+        state.errors.push({type:'tone', slideNum:0, message:`Transcript has ${totalWords} words (~${totalMinutes} min), below the recommended ~2000 words.`, severity:'warning', position:0}); 
+    } else if (totalMinutes > 25) { 
+        state.errors.push({type:'tone', slideNum:0, message:`Transcript has ${totalWords} words (~${totalMinutes} min). EXCEEDS the 25-minute maximum!`, severity:'error', position:0}); 
+    } else if (totalWords > 2200) { 
+        state.errors.push({type:'tone', slideNum:0, message:`Transcript has ${totalWords} words (~${totalMinutes} min), above recommended ~2000 words.`, severity:'warning', position:0}); 
+    } 
+    checkTitle(); 
+    state.slides.forEach(slide => checkSlideContent(slide)); 
+} 
+ 
+function checkTitle() { 
+    if (state.title.length > 50) 
+        state.errors.push({type:'formatting', slideNum:0, message:`Title is ${state.title.length} chars — keep under 50.`, severity:'warning', position:0}); 
+    if (state.title !== toTitleCase(state.title)) 
+        state.errors.push({type:'formatting', slideNum:0, message:'Lecture title should be in title case.', severity:'info', position:0}); 
+} 
+ 
+function checkSlideContent(slide) { 
+    const {content, number: slideNum, startPos, endPos} = slide; 
+    Object.entries(usToUk).forEach(([us, uk]) => { 
+        const regex = new RegExp(`\\b${us}\\b`, 'gi'); 
+        let match; 
+        while ((match = regex.exec(content)) !== null) { 
+            state.errors.push({type:'spelling', slideNum, message:`Spelling: "${match[0]}" → "${uk}"`, severity:'error', position: startPos+match.index, length: match[0].length, text: match[0], replacement: uk}); 
+        } 
+    }); 
+    grammarRules.forEach(rule => { 
+        let match; 
+        const rp = new RegExp(rule.pattern.source, rule.pattern.flags); 
+        while ((match = rp.exec(content)) !== null) { 
+            state.errors.push({type:'grammar', slideNum, message: rule.message, severity:'error', position: startPos+match.index, length: match[0].length, text: match[0]}); 
+        } 
+    }); 
+    futureProofingRules.forEach(rule => { 
+        let match; 
+        const rp = new RegExp(rule.pattern.source, rule.pattern.flags); 
+        while ((match = rp.exec(content)) !== null) { 
+            state.errors.push({type:'futureproof', slideNum, message: rule.message, severity:'warning', position: startPos+match.index, length: match[0].length, text: match[0]}); 
+        } 
+    });
+    content.split(/[.!?]+/).filter(s=>s.trim()).forEach(sentence => { 
+        const words = sentence.trim().split(/\s+/).filter(w=>w.length>0); 
+        if (words.length > 40) { 
+            const sp = content.indexOf(sentence.trim()); 
+            state.errors.push({type:'tone', slideNum, message:`Sentence has ${words.length} words — consider breaking it up.`, severity:'warning', position: startPos+sp, length: sentence.trim().length, text: sentence.trim().substring(0,100)+'...'}); 
+        } 
+    }); 
+    idioms.forEach(idiom => { 
+        const regex = new RegExp(`\\b${idiom}\\b`, 'gi'); 
+        let match; 
+        while ((match = regex.exec(content)) !== null) { 
+            state.errors.push({type:'style', slideNum, message:`Idiom: "${match[0]}" — use clearer, more direct language.`, severity:'info', position: startPos+match.index, length: match[0].length, text: match[0]}); 
+        } 
+    }); 
+} 
+ 
+function renderUI() { 
+    if (!state.slides.length) return; 
+    document.getElementById('emptyState').style.display = 'none'; 
+    document.getElementById('statsBar').style.display = 'block'; 
+ 
+    const totalWords = countWords(state.originalText); 
+    const totalMinutes = Math.round(totalWords/100); 
+    const totalIssues = state.errors.length-2; 
+ 
+    document.getElementById('totalWords').textContent = totalWords.toLocaleString(); 
+    document.getElementById('totalChars').textContent = state.originalText.length.toLocaleString(); 
+    document.getElementById('totalMinutes').textContent = totalMinutes; 
+    document.getElementById('totalIssues').textContent = totalIssues; 
+ 
+    const mEl = document.getElementById('totalMinutes'); 
+    const mWarn = document.getElementById('minutesWarning'); 
+    if (totalMinutes > 25) { 
+        mEl.style.color = '#dc2626'; 
+        mWarn.style.display = 'inline'; 
+    } else { 
+        mEl.style.color = 'var(--text-dark)'; 
+        mWarn.style.display = 'none'; 
+    } 
+ 
+    document.getElementById('slidesAnalyzed').textContent = `${state.slides.length} Sections Analysed`; 
+    document.getElementById('errorsRemaining').textContent = `${totalIssues} ${totalIssues===1?'Error':'Errors'} Remaining`; 
+ 
+    document.getElementById('slidesContainer').innerHTML = state.slides.map((slide, idx) => renderSlide(slide, idx)).join(''); 
+} 
+ 
+function renderSlide(slide, index) { 
+    const slideErrors = state.errors 
+        .filter(e => e.slideNum === slide.number) 
+        .sort((a,b) => (a.position??Infinity) - (b.position??Infinity)); 
+ 
+    const words = countWords(slide.content); 
+    const chars = slide.content.length; 
+    const minutes = Math.round(words/100); 
+ 
+    let highlighted = escapeHtml(slide.content); 
+    [...slideErrors] 
+        .filter(e => e.position !== undefined) 
+        .sort((a,b) => b.position - a.position) 
+        .forEach(error => { 
+            if (error.length && error.position >= slide.startPos && error.position < slide.endPos) { 
+                const rel = error.position - slide.startPos; 
+                const before = highlighted.substring(0, rel); 
+                const word   = highlighted.substring(rel, rel + error.length); 
+                const after  = highlighted.substring(rel + error.length); 
+                highlighted = before + `<span class="highlight-${error.type}" title="${escapeHtml(error.message)}">${word}</span>` + after; 
+            } 
+        }); 
+    highlighted = highlighted.replace(/\n/g, '<br>'); 
+ 
+    return ` 
+        <div class="lecture-block"> 
+            <div class="flex flex-col gap-2"> 
+                <div class="flex items-center justify-between mb-2"> 
+                    <div class="text-xs text-slate-400 font-mono">Section ${slide.number}</div> 
+                    <div class="flex gap-2 text-xs text-slate-500"> 
+                        <span>${words} words</span><span>•</span> 
+                        <span>${chars} chars</span><span>•</span> 
+                        <span>${minutes} min</span> 
+                    </div> 
+                </div> 
+                <div class="content-area">${highlighted}</div> 
+            </div> 
+ 
+            <div class="space-y-3"> 
+                ${slideErrors.length === 0 
+                    ? `<div class="bg-green-50 border border-green-100"> 
+                           <div class="flex items-center gap-2 mb-1 text-green-600"> 
+                               <span class="material-symbols-outlined text-sm">verified</span> 
+                               <span class="text-[10px] font-bold uppercase">Compliance Passed</span> 
+                           </div> 
+                           <p>No errors found in this section.</p> 
+                       </div>` 
+                    : slideErrors.map(renderErrorCard).join('') 
+                } 
+            </div> 
+        </div>`; 
+} 
+ 
+function renderErrorCard(error) { 
+    const colors = { 
+        grammar:     {bg:'bg-red-50/50',     border:'border-red-200/50',     text:'text-red-600',     icon:'spellcheck'}, 
+        spelling:    {bg:'bg-rose-50/50',    border:'border-rose-200/50',    text:'text-rose-600',    icon:'spellcheck'}, 
+        tone:        {bg:'bg-amber-50/50',   border:'border-amber-200/50',   text:'text-amber-600',   icon:'psychology'}, 
+        style:       {bg:'bg-indigo-50/50',  border:'border-indigo-200/50',  text:'text-indigo-600',  icon:'style'}, 
+        futureproof: {bg:'bg-violet-50/50',  border:'border-violet-200/50',  text:'text-violet-600',  icon:'update'}, 
+        formatting:  {bg:'bg-sky-50/50',     border:'border-sky-200/50',     text:'text-sky-600',     icon:'format_shapes'} 
+    }; 
+    const c = colors[error.type] || colors.formatting; 
+    const displayText = error.text ? (error.text.length > 60 ? error.text.substring(0,60)+'...' : error.text) : ''; 
+    return ` 
+        <div class="${c.bg} border ${c.border}"> 
+            <div class="flex items-center gap-2 mb-1 ${c.text}"> 
+                <span class="material-symbols-outlined text-sm">${c.icon}</span> 
+                <span class="text-[10px] font-bold uppercase">${error.type === 'futureproof' ? 'Future-Proofing' : error.type} Issue</span> 
+            </div> 
+            <p>${escapeHtml(error.message)}</p> 
+            ${displayText ? `<div style="font-size:13px;font-family:monospace;color:var(--text-muted);background:rgba(0,0,0,0.02);padding:8px;border-radius:4px;margin-top:8px;">"${escapeHtml(displayText)}"</div>` : ''} 
+        </div>`; 
+} 
+ 
+function countWords(text) { 
+    return text.trim().split(/\s+/).filter(w=>w.length>0).length; 
+} 
+function toTitleCase(str) { 
+    const minor = ['a','an','and','as','at','but','by','for','in','of','on','or','the','to','with']; 
+    return str.split(' ').map((w,i) => (!i || !minor.includes(w.toLowerCase())) ? w.charAt(0).toUpperCase()+w.slice(1).toLowerCase() : w.toLowerCase()).join(' '); 
+} 
+function escapeHtml(text) { 
+    const d = document.createElement('div'); 
+    d.textContent = text; 
+    return d.innerHTML; 
+} 
+
+function toggleResponsiveCSS() {
+  const btn = document.getElementById('fontToggleBtn');
+  const btnText = btn.querySelector('.btn-text');
+  let linkTag = document.getElementById('responsive-css-link');
+
+  if (linkTag) {
+    // If responsive.css is already active -> REMOVE IT
+    linkTag.remove();
+    btn.classList.remove('active');
+    btnText.textContent = 'Text Size: Standard';
+    localStorage.setItem('responsiveCSSActive', 'false');
+  } else {
+    // If not active -> INJECT IT INTO <HEAD>
+    linkTag = document.createElement('link');
+    linkTag.id = 'responsive-css-link';
+    linkTag.rel = 'stylesheet';
+    linkTag.href = 'responsive.css';
+    document.head.appendChild(linkTag);
+
+    btn.classList.add('active');
+    btnText.textContent = 'Text Size: Large';
+    localStorage.setItem('responsiveCSSActive', 'true');
+  }
+}
+
+// Keep active preference across page navigations
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('responsiveCSSActive') === 'true') {
+    toggleResponsiveCSS();
+  }
+});
+
+
+</script> 
+</body> 
+</html>

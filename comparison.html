@@ -1,0 +1,1120 @@
+<!DOCTYPE html>    
+<html class="light" lang="en">    
+<head>    
+    <meta charset="utf-8"/>    
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>    
+    <title>Transcript & PowerPoint Comparison Tool</title>    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>    
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>    
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script> 
+    <script>    
+        tailwind.config = {    
+            darkMode: "class",    
+            theme: {    
+                extend: {    
+                    colors: {    
+                        "primary": "#e8c547", 
+                        "background-light": "#0a0a0a", 
+                        "background-dark": "#0a0a0a", 
+                        "border-light": "rgba(245,242,237,0.1)", 
+                    },    
+                    fontFamily: { "display": ["DM Sans", "sans-serif"] },    
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},    
+                },    
+            },    
+        }    
+        function toggleResponsiveCSS() {
+  const btn = document.getElementById('fontToggleBtn');
+  const btnText = btn.querySelector('.btn-text');
+  let linkTag = document.getElementById('responsive-css-link');
+
+  if (linkTag) {
+    // If responsive.css is already active -> REMOVE IT
+    linkTag.remove();
+    btn.classList.remove('active');
+    btnText.textContent = 'Text Size: Standard';
+    localStorage.setItem('responsiveCSSActive', 'false');
+  } else {
+    // If not active -> INJECT IT INTO <HEAD>
+    linkTag = document.createElement('link');
+    linkTag.id = 'responsive-css-link';
+    linkTag.rel = 'stylesheet';
+    linkTag.href = 'responsive.css';
+    document.head.appendChild(linkTag);
+
+    btn.classList.add('active');
+    btnText.textContent = 'Text Size: Large';
+    localStorage.setItem('responsiveCSSActive', 'true');
+  }
+}
+
+// Keep active preference across page navigations
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('responsiveCSSActive') === 'true') {
+    toggleResponsiveCSS();
+  }
+});
+
+    </script>    
+<style> 
+    :root { 
+        --black:      #0a0a0a; 
+        --mid:        #141414; 
+        --card:       #1a1a1a; 
+        --white:      #f5f2ed; 
+        --accent:     #fcd597; 
+        --accent-dim: rgba(232,197,71,0.10); 
+        --border:     rgba(245,242,237,0.09); 
+        --muted:      rgba(245,242,237,0.45); 
+        --blue:       #7eb8f7; 
+        
+        /* Light theme colors */
+        --light-bg: #ffffff;
+        --light-gray: #f8f9fa;
+        --light-border: #e5e7eb;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+    } 
+ 
+    *, *::before, *::after { box-sizing: border-box; } 
+ 
+    body { 
+        font-family: 'DM Sans', sans-serif; 
+        background: var(--light-gray); 
+        color: var(--text-dark); 
+        -webkit-font-smoothing: antialiased; 
+    } 
+ 
+    /* ── noise overlay ── */ 
+    body::before { 
+        content: ''; 
+        position: fixed; 
+        inset: 0; 
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); 
+        background-size: 200px 200px; 
+        pointer-events: none; 
+        z-index: 0; 
+        opacity: 0.3; 
+    } 
+ 
+    /* ── top nav ── */ 
+    .site-nav { 
+        position: sticky; 
+        top: 0; 
+        z-index: 50; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 14px 32px; 
+        background: white;
+        backdrop-filter: blur(14px); 
+        -webkit-backdrop-filter: blur(14px); 
+        border-bottom: 1px solid var(--border); 
+    } 
+ 
+    .site-nav .logo { 
+          font-family: 'Inter', san-serif;
+        font-size: 1rem; 
+        color: black; 
+        text-decoration: none; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+    } 
+ 
+    .logo-dot { 
+        width: 7px; 
+        height: 7px; 
+        border-radius: 50%; 
+        background: var(--accent); 
+        animation: pulse 2s ease-in-out infinite; 
+        flex-shrink: 0; 
+    } 
+ 
+    .site-nav nav { 
+        display: flex; 
+        align-items: center; 
+        gap: 28px; 
+        background-color: white;
+    } 
+ 
+    .site-nav nav a { 
+        color: rgb(44, 43, 43); 
+        text-decoration: none; 
+        font-size: 0.78rem; 
+        font-weight: 400; 
+        letter-spacing: 0.05em; 
+        text-transform: uppercase; 
+        transition: color 0.2s; 
+        position: relative; 
+    } 
+ 
+    .site-nav nav a::after { 
+        content: ''; 
+        position: absolute; 
+        left: 0; bottom: -3px; 
+        width: 0; height: 1px; 
+        background: #4285F4; 
+        transition: width 0.25s; 
+    } 
+ 
+    .site-nav nav a:hover, 
+    .site-nav nav a.active { 
+        color: #4285F4; 
+    } 
+ 
+    .site-nav nav a:hover::after, 
+    .site-nav nav a.active::after { 
+        width: 100%; 
+        color:black;
+    } 
+      #slideContent {
+        padding-left: 20%;
+  }
+      #slideContent2 {
+        padding-left: 40%;
+  }
+ * Button Styling */
+.font-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #292b2d;
+  color: rgb(252, 251, 251);
+  border: 1px solid var(--border, #cccccc);
+  border-radius: 0px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: white;
+  max-width: 20%;
+}
+
+.font-toggle-btn:hover {
+  background: rgb(252, 251, 251);
+   max-width: 20%;
+  
+}
+
+/* Active State (When responsive.css is injected) */
+.font-toggle-btn.active {
+  background:rgb(252, 251, 251);
+  color: rgb(50, 50, 50);
+   max-width: 20%;
+  
+}
+
+.font-toggle-btn .material-symbols-outlined {
+  font-size: 1.1em;
+  
+}
+    /* ── app header (below nav) ── */ 
+    header.app-header { 
+        position: sticky; 
+        top: 49px;          /* height of site-nav */ 
+        z-index: 40; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 14px 32px; 
+        background: white;
+        backdrop-filter: blur(14px); 
+        -webkit-backdrop-filter: blur(14px); 
+        border-bottom: 1px solid var(--border); 
+    } 
+ 
+    header.app-header h1 { 
+       font-family: 'Inter', san-serif;
+        font-size: 1.55rem; 
+        font-weight: 400; 
+        letter-spacing: -0.01em; 
+        color: black; 
+        background: none; 
+        -webkit-text-fill-color: unset; 
+    } 
+ 
+    /* upload buttons */ 
+    .upload-btn { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        padding: 9px 20px; 
+        background: #4285F4; 
+        color: white; 
+        border: none; 
+        border-radius: 2px; 
+        font-family: 'DM Sans', sans-serif; 
+        font-size: 0.72rem; 
+        font-weight: 600; 
+        letter-spacing: 0.1em; 
+        text-transform: uppercase; 
+        cursor: pointer; 
+        transition: background 0.2s, transform 0.2s; 
+    } 
+ 
+    .upload-btn:hover { 
+        background: #89b1f2;
+        transform: translateY(-1px); 
+    } 
+ 
+    .upload-btn .material-symbols-outlined { 
+        font-size: 1.1rem; 
+        color: white; 
+    } 
+
+    /* Export button */
+    #exportBtn {
+        background: #16a34a;
+        color: white;
+    }
+
+    #exportBtn:hover {
+        background: #15803d;
+    }
+
+    #exportBtn .material-symbols-outlined {
+        color: white;
+    }
+ 
+    /* ── stats bar ── */ 
+    #statsBar { 
+        background: var(--light-bg); 
+        border-bottom: 2px solid var(--light-border); 
+        padding: 16px 32px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    } 
+ 
+    #statsBar .flex { 
+        color: var(--text-dark); 
+        font-size: 16px !important;
+    } 
+    
+    #statsBar .font-bold { 
+        color: var(--text-dark); 
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    } 
+ 
+    #statsBar span {
+        font-size: 16px !important;
+        font-weight: 600;
+    }
+
+    /* ── info banner ── */
+    .info-banner {
+        background: #fffbeb;
+        border: 2px solid #fde68a;
+        border-radius: 8px;
+        padding: 12px 20px;
+        margin: 20px 32px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .info-banner .material-symbols-outlined {
+        color: #d97706;
+        font-size: 1.3rem;
+    }
+
+    .info-banner p {
+        color: var(--text-dark);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    /* ── column headers ── */ 
+    .col-headers { 
+        background: var(--light-bg); 
+        border-bottom: 1px solid var(--light-border); 
+        padding: 12px 32px; 
+        position: sticky; 
+        top: 113px;      /* site-nav + app-header */ 
+        z-index: 30; 
+    } 
+ 
+    .col-headers span { 
+        font-size: 14px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.08em !important; 
+        text-transform: uppercase; 
+        color: var(--text-muted) !important; 
+    } 
+ 
+    /* ── comparison grid ── */ 
+    .comparison-grid { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 2rem; 
+        align-items: start; 
+    } 
+ 
+    /* ── empty state ── */ 
+    #emptyState { 
+        margin: 40px 32px; 
+        border: 2px dashed var(--light-border); 
+        border-radius: 12px; 
+        padding: 60px 24px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        background: var(--light-bg); 
+    } 
+ 
+    #emptyState .material-symbols-outlined { 
+        font-size: 3.5rem; 
+        color: var(--text-muted); 
+        opacity: 0.4;
+    } 
+ 
+    #emptyState p:first-of-type { 
+       font-family: 'Inter', san-serif;
+        font-size: 1.1rem; 
+        color: var(--text-dark); 
+    } 
+ 
+    #emptyState p:last-of-type { 
+        font-size: 0.9rem; 
+        color: var(--text-muted); 
+    } 
+ 
+    /* ── slide comparison block ── */ 
+    .slide-comparison { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 0.5rem; 
+        padding: 2rem; 
+        border: 1px solid var(--light-border); 
+        background: var(--light-bg); 
+        align-items: stretch; 
+        border-radius: 12px; 
+        margin: 0 32px 20px; 
+        transition: border-color 0.3s, box-shadow 0.3s; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    } 
+ 
+    .slide-comparison:hover { 
+        border-color: #d1d5db;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+    } 
+
+    /* slide number / meta */ 
+    .slide-comparison .text-xs.text-slate-400 { 
+        font-size: 14px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.05em !important; 
+        text-transform: uppercase; 
+        color: var(--text-muted) !important; 
+        font-family: 'DM Sans', monospace; 
+    } 
+
+    .slide-comparison .border-b { 
+        border-color: var(--light-border) !important; 
+    } 
+
+    /* Content boxes */
+    .content-box {
+        background: var(--light-bg);
+        padding: 18px 20px;
+        border-radius: 8px;
+        border: 1px solid var(--light-border);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        font-size: 16px;
+        line-height: 1.7;
+        color: var(--text-dark);
+    }
+
+    .content-box:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    .content-box.empty {
+        background: var(--light-gray);
+        color: var(--text-muted);
+        font-style: italic;
+        text-align: center;
+    }
+
+    /* Highlighted words */
+    .bullet-start {
+        background-color: #fef2f2;
+        color: #dc2626;
+        font-weight: 600;
+        padding: 2px 4px;
+        border-radius: 3px;
+        border-bottom: 2px solid #dc2626;
+    }
+
+    /* Bullets */
+    .bullet-item {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .bullet-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .bullet-dot {
+        color: #d97706;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    /* Warning card */
+    .warning-card {
+        background: #fffbeb;
+        border: 2px solid #fde68a;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-top: 12px;
+    }
+
+    .warning-card .flex {
+        color: #d97706;
+    }
+
+    .warning-card p {
+        color: var(--text-dark);
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    /* ── footer ── */ 
+    footer { 
+        background: var(--light-bg); 
+        border-top: 2px solid var(--light-border); 
+        padding: 16px 32px; 
+        font-size: 14px !important; 
+        font-weight: 500; 
+        color: var(--text-muted); 
+        letter-spacing: 0.02em; 
+        box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+    } 
+ 
+    .bg-green-50 { 
+        background: #f0fdf4 !important; 
+        border-color: #86efac !important; 
+    } 
+ 
+    .text-green-600 { color: #16a34a !important; } 
+    .bg-green-500   { background-color: #22c55e !important; } 
+ 
+    #fileName { 
+        font-size: 14px !important;
+    }
+    
+    #fileName .material-symbols-outlined { 
+    color:#4285F4; 
+        font-size: 1.1rem !important; 
+    } 
+ 
+    /* scrollbar */ 
+    .custom-scrollbar::-webkit-scrollbar       { width: 8px; } 
+    .custom-scrollbar::-webkit-scrollbar-track { background: var(--light-gray); } 
+    .custom-scrollbar::-webkit-scrollbar-thumb { 
+        background-color: #d1d5db; 
+        border-radius: 9999px; 
+    } 
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+        background-color: #9ca3af; 
+    }
+ 
+    /* ── animations ── */ 
+    @keyframes pulse { 
+        0%, 100% { opacity: 1; transform: scale(1); } 
+        50%       { opacity: 0.5; transform: scale(0.75); } 
+    } 
+    
+    /* Main content area */
+    main {
+        background: var(--light-gray);
+    }
+</style> 
+   <!-- <link rel="stylesheet" href="responsive.css"> -->
+</head>    
+    
+<body class="min-h-screen flex flex-col">    
+    
+    <input type="file" id="pptUpload" accept=".pptx" style="display:none"> 
+    <input type="file" id="transcriptUpload" accept=".docx,.doc" style="display:none"> 
+ 
+    <!-- ── Site Nav ── --> 
+    <div class="site-nav"> 
+        
+        <nav> 
+            <a href="guide_cld.html">Home</a> 
+            <a href="transcript_checker.html">Transcript Checker</a> 
+            <a href="ppt_checker.html">PowerPoint Checker</a>
+            <a href="#" class="active">Comparison Tool</a> 
+            <a href="ai_voiceover.html">AI Voiceover Guide</a>
+        </nav> 
+    </div> 
+    
+    <!-- App Header -->    
+    <header class="app-header shrink-0">    
+        <div class="flex items-center gap-3 shrink-0">    
+            <div class="size-10 rounded-xl flex items-center justify-center" style="background: #b3e4c0;border:1px solid rgba(232,197,71,0.2)">    
+                <span class="material-symbols-outlined text-2xl" style="color:#34A853">compare_arrows</span>    
+            </div>    
+            
+            <h1>Transcript & PowerPoint Comparison</h1> 
+        </div>    
+        <div class="flex items-center gap-3">    
+            <button id="uploadTranscriptBtn" class="upload-btn"> 
+                <span class="material-symbols-outlined">upload_file</span> 
+                <div class="text-left leading-tight">    
+                    <p style="font-size:0.6rem;letter-spacing:0.12em;opacity:0.6;">STEP 1</p>    
+                    <p>Upload Transcript</p>    
+                </div>    
+            </button> 
+            <button id="uploadPptBtn" class="upload-btn"> 
+                <span class="material-symbols-outlined">upload_file</span> 
+                <div class="text-left leading-tight">    
+                    <p style="font-size:0.6rem;letter-spacing:0.12em;opacity:0.6;">STEP 2</p>    
+                    <p>Upload PowerPoint</p>    
+                </div>    
+            </button>
+            <button id="exportBtn" class="upload-btn" style="display:none"> 
+                <span class="material-symbols-outlined">download</span> 
+                <div class="text-left leading-tight">    
+                    <p style="font-size:0.6rem;letter-spacing:0.12em;opacity:0.6;">EXPORT</p>    
+                    <p>Red Word List</p>    
+                </div>    
+            </button>
+        </div>  
+          
+    </header>    
+    
+    <!-- Stats Bar -->    
+    <div id="statsBar" class="shrink-0" style="display:none">    
+        <div class="flex items-center justify-between">    
+            <div class="flex items-center gap-6">    
+                <div class="flex items-center gap-2">    
+                    <span style="font-weight:600;">Transcript Slides:</span>    
+                    <span class="font-bold" id="transcriptSlides">0</span>    
+                </div>    
+                <div class="flex items-center gap-2">    
+                    <span style="font-weight:600;">PowerPoint Slides:</span>    
+                    <span class="font-bold" id="pptSlides">0</span>    
+                </div>    
+                <div class="flex items-center gap-2">    
+                    <span style="font-weight:600;">Matched Pairs:</span>    
+                    <span class="font-bold" id="matchedPairs">0</span>    
+                </div>    
+            </div>    
+            <div class="flex items-center gap-4">    
+                <span style="font-weight:600;">Unmatched Bullets:</span>    
+                <span class="font-bold" style="color:#dc2626;" id="unmatchedBullets">0</span>    
+            </div>    
+        </div>    
+    </div>    
+
+<!-- Display Mode / Text Size Button -->
+    <button type="button" class="font-toggle-btn" id="fontToggleBtn" onclick="toggleResponsiveCSS()">
+      <span class="material-symbols-outlined">format_size</span>
+      <span class="btn-text">Text Size: Standard</span>
+    </button>
+  </div>
+    <!-- Info Banner -->
+    <div class="info-banner" style="display:none" id="infoBanner">
+        <span class="material-symbols-outlined">info</span>
+        <p><strong>Auto-matching in progress:</strong> Slides are being paired based on slide numbers. If mismatches occur (e.g., missing slides, incorrect numbering), the tool will attempt to match by content or leave empty slots.</p>
+    </div>
+    
+    <!-- Column Headers -->    
+    <div class="col-headers shrink-0">    
+        <div class="comparison-grid w-full">    
+            <span id="slideContent">Transcript Text</span>    
+            <span id="slideContent2">PowerPoint Bullets</span>    
+        </div>    
+    </div>    
+    
+    <!-- Main -->    
+    <main class="flex-1">    
+        <div id="emptyState">    
+            <span class="material-symbols-outlined">upload_file</span>    
+            <p>Upload both files to begin comparison</p>    
+            <p>Upload transcript (.docx) and PowerPoint (.pptx) to start</p>    
+        </div>    
+        <div id="comparisonContainer" class="py-8"></div>    
+    </main>    
+    
+    <!-- Footer -->    
+    <footer class="flex items-center justify-between shrink-0">    
+        <div class="flex items-center gap-6">    
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-green-50">    
+                <span class="size-1.5 rounded-full bg-green-500 animate-pulse"></span>    
+                <span class="text-green-600" style="font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">System Ready</span>    
+            </div>    
+            <div id="fileName" class="flex items-center gap-2">    
+                <span class="material-symbols-outlined">description</span>    
+                <span id="fileStatus">No files loaded</span>    
+            </div>    
+        </div>    
+        <div class="flex items-center gap-4 uppercase tracking-wide">    
+            <span id="slidesCompared">0 Slides Compared</span>    
+            <span style="opacity:0.3">|</span>    
+            <span id="highlightsCount" style="color:#dc2626;">0 Highlights</span>    
+        </div>    
+    </footer>    
+    
+<script>    
+const state = {    
+    transcriptSlides: [],
+    pptSlides: [],
+    comparisons: [],
+    highlightedWords: []
+};    
+   
+document.addEventListener('DOMContentLoaded', () => {    
+    document.getElementById('uploadTranscriptBtn').addEventListener('click', () => document.getElementById('transcriptUpload').click());    
+    document.getElementById('uploadPptBtn').addEventListener('click', () => document.getElementById('pptUpload').click());    
+    document.getElementById('transcriptUpload').addEventListener('change', handleTranscriptUpload);    
+    document.getElementById('pptUpload').addEventListener('change', handlePptUpload);
+    document.getElementById('exportBtn').addEventListener('click', exportHighlights);
+});    
+
+async function handleTranscriptUpload(e) {    
+    const file = e.target.files[0];    
+    if (!file) return;    
+    
+    const reader = new FileReader();   
+    reader.onload = async function(event) {   
+        try { 
+            const result = await mammoth.extractRawText({arrayBuffer: event.target.result}); 
+            parseTranscript(result.value);
+            updateFileStatus();
+            if (state.pptSlides.length > 0) {
+                performComparison();
+            }
+        } catch(err) { 
+            alert('Error reading transcript: ' + err.message); 
+        } 
+    };   
+    reader.readAsArrayBuffer(file);   
+}
+
+function parseTranscript(text) {
+    const lines = text.split('\n').filter(l => l.trim());
+    const slidePattern = /(?:^|\n)(?:Slide\s+(\d+)|(\d+)\.)\s*[:\-]?\s*([^\n]*)/gi;
+    const matches = [...text.matchAll(slidePattern)];
+    
+    state.transcriptSlides = [];
+    
+    if (!matches.length) {
+        state.transcriptSlides.push({
+            number: 1,
+            title: 'Main Content',
+            content: text.trim()
+        });
+    } else {
+        matches.forEach((match, idx) => {
+            const slideNum = parseInt(match[1] || match[2]);
+            const slideTitle = match[3] || `Section ${slideNum}`;
+            const startPos = match.index;
+            const endPos = idx < matches.length - 1 ? matches[idx + 1].index : text.length;
+            const content = text.substring(startPos, endPos).replace(match[0], '').trim();
+            
+            state.transcriptSlides.push({
+                number: slideNum,
+                title: slideTitle,
+                content: content
+            });
+        });
+    }
+}
+
+async function handlePptUpload(e) {    
+    const file = e.target.files[0];    
+    if (!file) return;    
+       
+    const reader = new FileReader();   
+    reader.onload = async function(event) {   
+        const zip = await JSZip.loadAsync(event.target.result);   
+        const slideFiles = Object.keys(zip.files).filter(name => name.startsWith('ppt/slides/slide') && name.endsWith('.xml'));   
+           
+        slideFiles.sort((a, b) => {   
+            const numA = parseInt(a.match(/slide(\d+)\.xml/)[1]);   
+            const numB = parseInt(b.match(/slide(\d+)\.xml/)[1]);   
+            return numA - numB;   
+        });   
+   
+        state.pptSlides = [];   
+        for (const slideFile of slideFiles) {   
+            const content = await zip.file(slideFile).async('string');   
+            const parser = new DOMParser();   
+            const xmlDoc = parser.parseFromString(content, "text/xml");   
+               
+            const slideNum = parseInt(slideFile.match(/slide(\d+)\.xml/)[1]);   
+            const bullets = [];   
+               
+            const shapes = xmlDoc.getElementsByTagNameNS("http://schemas.openxmlformats.org/presentationml/2006/main", "sp"); 
+            for (let i = 0; i < shapes.length; i++) { 
+                const paragraphs = shapes[i].getElementsByTagNameNS("http://schemas.openxmlformats.org/drawingml/2006/main", "p"); 
+                for (let j = 0; j < paragraphs.length; j++) { 
+                    const textRuns = paragraphs[j].getElementsByTagNameNS("http://schemas.openxmlformats.org/drawingml/2006/main", "t"); 
+                    let paraText = ""; 
+                    for (let k = 0; k < textRuns.length; k++) { 
+                        paraText += textRuns[k].textContent; 
+                    } 
+                    if (paraText.trim()) { 
+                        bullets.push(paraText.trim()); 
+                    } 
+                } 
+            } 
+   
+            state.pptSlides.push({   
+                number: slideNum,   
+                bullets: bullets
+            });   
+        }   
+           
+        updateFileStatus();
+        if (state.transcriptSlides.length > 0) {
+            performComparison();
+        }
+    };   
+    reader.readAsArrayBuffer(file);   
+}
+
+function updateFileStatus() {
+    const hasTranscript = state.transcriptSlides.length > 0;
+    const hasPpt = state.pptSlides.length > 0;
+    
+    let status = '';
+    if (hasTranscript && hasPpt) {
+        status = 'Both files loaded ✓';
+    } else if (hasTranscript) {
+        status = 'Transcript loaded, waiting for PPT...';
+    } else if (hasPpt) {
+        status = 'PowerPoint loaded, waiting for transcript...';
+    } else {
+        status = 'No files loaded';
+    }
+    
+    document.getElementById('fileStatus').textContent = status;
+}
+
+function performComparison() {
+    state.comparisons = [];
+    state.highlightedWords = [];
+    
+    // Create a map of slide numbers for quick lookup
+    const transcriptMap = new Map();
+    state.transcriptSlides.forEach(slide => {
+        transcriptMap.set(slide.number, slide);
+    });
+    
+    const pptMap = new Map();
+    state.pptSlides.forEach(slide => {
+        pptMap.set(slide.number, slide);
+    });
+    
+    // Get all unique slide numbers
+    const allSlideNumbers = new Set([
+        ...state.transcriptSlides.map(s => s.number),
+        ...state.pptSlides.map(s => s.number)
+    ]);
+    
+    const sortedNumbers = Array.from(allSlideNumbers).sort((a, b) => a - b);
+    
+    // Create comparisons
+    sortedNumbers.forEach(slideNum => {
+        const transcriptSlide = transcriptMap.get(slideNum);
+        const pptSlide = pptMap.get(slideNum);
+        
+        const comparison = {
+            slideNumber: slideNum,
+            transcript: transcriptSlide || null,
+            ppt: pptSlide || null,
+            highlightedTranscript: '',
+            unmatchedBullets: []
+        };
+        
+        // If both exist, try to match bullets to transcript
+        if (transcriptSlide && pptSlide) {
+            const result = highlightBulletStarts(transcriptSlide.content, pptSlide.bullets);
+            comparison.highlightedTranscript = result.highlighted;
+            comparison.unmatchedBullets = result.unmatched;
+            comparison.firstBulletIsTitle = result.firstBulletIsTitle;
+            comparison.matchedPositions = result.matchedPositions;
+        } else if (transcriptSlide) {
+            comparison.highlightedTranscript = escapeHtml(transcriptSlide.content);
+            comparison.matchedPositions = [];
+        } else {
+            comparison.matchedPositions = [];
+        }
+        
+        state.comparisons.push(comparison);
+    });
+    
+    renderComparison();
+}
+
+function highlightBulletStarts(transcriptText, bullets) {
+    let highlighted = transcriptText;
+    const unmatched = [];
+    const matchedPositions = [];
+    const firstBulletIsTitle = { found: false };
+    
+    bullets.forEach((bullet, bulletIndex) => {
+        // Clean the bullet text for matching
+        const bulletWords = bullet.toLowerCase()
+            .replace(/[^\w\s]/g, ' ')
+            .split(/\s+/)
+            .filter(w => w.length > 0); // Keep all words including short ones
+        
+        if (bulletWords.length === 0) {
+            unmatched.push(bullet);
+            return;
+        }
+        
+        let found = false;
+        
+        // For single-word bullets (like "LNG", "Methanol"), search more aggressively
+        if (bulletWords.length === 1) {
+            const singleWord = bulletWords[0];
+            const regex = new RegExp(`\\b(${singleWord})\\b`, 'gi');
+            
+            const lowerText = transcriptText.toLowerCase();
+            let match;
+            while ((match = regex.exec(lowerText)) !== null) {
+                // Check if this position hasn't been matched already
+                const overlapFound = matchedPositions.some(pos => 
+                    (match.index >= pos.start && match.index < pos.end) ||
+                    (match.index + match[0].length > pos.start && match.index + match[0].length <= pos.end)
+                );
+                
+                if (!overlapFound) {
+                    matchedPositions.push({
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        match: match[0],
+                        bulletIndex: bulletIndex
+                    });
+                    found = true;
+                    break;
+                }
+            }
+        } else {
+            // For multi-word bullets, try to find phrases
+            const searchWords = bulletWords.slice(0, Math.min(5, bulletWords.length));
+            
+            // Try different combinations
+            for (let i = 0; i <= searchWords.length - 1 && !found; i++) {
+                const numWords = Math.min(3, searchWords.length - i);
+                if (numWords === 0) break;
+                
+                const searchPhrase = searchWords.slice(i, i + numWords).join('\\s+');
+                const regex = new RegExp(`\\b(${searchPhrase})\\b`, 'gi');
+                
+                let match;
+                const lowerText = transcriptText.toLowerCase();
+                while ((match = regex.exec(lowerText)) !== null) {
+                    // Check if this position hasn't been matched already
+                    const overlapFound = matchedPositions.some(pos => 
+                        (match.index >= pos.start && match.index < pos.end) ||
+                        (match.index + match[0].length > pos.start && match.index + match[0].length <= pos.end)
+                    );
+                    
+                    if (!overlapFound) {
+                        matchedPositions.push({
+                            start: match.index,
+                            end: match.index + match[0].length,
+                            match: match[0],
+                            bulletIndex: bulletIndex
+                        });
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (!found) {
+            // Check if this is the first bullet - might be a title
+            if (bulletIndex === 0) {
+                firstBulletIsTitle.found = true;
+                firstBulletIsTitle.text = bullet;
+            } else {
+                unmatched.push(bullet);
+            }
+        }
+    });
+    
+    // Sort positions by start index in reverse order for replacement
+    matchedPositions.sort((a, b) => b.start - a.start);
+    
+    // Apply highlights
+    highlighted = escapeHtml(highlighted);
+    matchedPositions.forEach(pos => {
+        const before = highlighted.substring(0, pos.start);
+        const match = highlighted.substring(pos.start, pos.end);
+        const after = highlighted.substring(pos.end);
+        
+        // Extract first three words (or less if single word)
+        const words = match.split(/\s+/);
+        const firstThree = words.slice(0, Math.min(3, words.length)).join(' ');
+        const rest = words.slice(Math.min(3, words.length)).join(' ');
+        
+        const highlightedMatch = `<span class="bullet-start">${firstThree}</span>${rest ? ' ' + rest : ''}`;
+        highlighted = before + highlightedMatch + after;
+        
+        // Store for export with original position for sorting
+        pos.highlightedText = firstThree;
+    });
+    
+    return {
+        highlighted: highlighted,
+        unmatched: unmatched,
+        firstBulletIsTitle: firstBulletIsTitle,
+        matchedPositions: matchedPositions  // Return positions for proper ordering
+    };
+}
+
+function renderComparison() {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('statsBar').style.display = 'block';
+    document.getElementById('infoBanner').style.display = 'flex';
+    document.getElementById('exportBtn').style.display = 'flex';
+    
+    // Update stats
+    document.getElementById('transcriptSlides').textContent = state.transcriptSlides.length;
+    document.getElementById('pptSlides').textContent = state.pptSlides.length;
+    
+    const matchedPairs = state.comparisons.filter(c => c.transcript && c.ppt).length;
+    document.getElementById('matchedPairs').textContent = matchedPairs;
+    
+    const totalUnmatched = state.comparisons.reduce((sum, c) => sum + c.unmatchedBullets.length, 0);
+    document.getElementById('unmatchedBullets').textContent = totalUnmatched;
+    
+    // Collect all highlighted words in transcript order
+    state.highlightedWords = [];
+    state.comparisons.forEach(comparison => {
+        if (comparison.matchedPositions && comparison.matchedPositions.length > 0) {
+            // Sort by position within this slide's transcript
+            const sorted = [...comparison.matchedPositions].sort((a, b) => a.start - b.start);
+            sorted.forEach(pos => {
+                if (pos.highlightedText) {
+                    state.highlightedWords.push(pos.highlightedText);
+                }
+            });
+        }
+    });
+    
+    document.getElementById('slidesCompared').textContent = `${state.comparisons.length} Slides Compared`;
+    document.getElementById('highlightsCount').textContent = `${state.highlightedWords.length} Highlights`;
+    
+    // Render comparisons
+    const html = state.comparisons.map(renderComparisonSlide).join('');
+    document.getElementById('comparisonContainer').innerHTML = html;
+}
+
+function renderComparisonSlide(comparison) {
+    const hasTranscript = comparison.transcript !== null;
+    const hasPpt = comparison.ppt !== null;
+    const hasUnmatched = comparison.unmatchedBullets.length > 0;
+    const hasFirstBulletAsTitle = comparison.firstBulletIsTitle && comparison.firstBulletIsTitle.found;
+    
+    return `
+        <div class="slide-comparison">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b">
+                <div class="text-xs text-slate-400 font-mono">Slide ${comparison.slideNumber}</div>
+                <div class="flex gap-3 text-xs" style="color:var(--text-muted);">
+                    ${hasTranscript ? '<span>✓ Transcript</span>' : '<span style="color:#dc2626;">✗ No Transcript</span>'}
+                    ${hasPpt ? '<span>✓ PowerPoint</span>' : '<span style="color:#dc2626;">✗ No PowerPoint</span>'}
+                </div>
+            </div>
+            
+            <div class="comparison-grid">
+                <!-- Transcript Side -->
+                <div>
+                    ${hasTranscript 
+                        ? `<div class="content-box">${comparison.highlightedTranscript.replace(/\n/g, '<br>')}</div>`
+                        : `<div class="content-box empty">No transcript content for this slide</div>`
+                    }
+                </div>
+                
+                <!-- PowerPoint Side -->
+                <div>
+                    ${hasPpt && comparison.ppt.bullets.length > 0
+                        ? `<div class="content-box">
+                               ${comparison.ppt.bullets.map(b => `
+                                   <div class="bullet-item">
+                                       <span class="bullet-dot">•</span>
+                                       <span>${escapeHtml(b)}</span>
+                                   </div>
+                               `).join('')}
+                           </div>`
+                        : `<div class="content-box empty">No bullet points on this slide</div>`
+                    }
+                    
+                    ${hasFirstBulletAsTitle ? `
+                        <div class="warning-card" style="background:#f0f9ff;border-color:#bae6fd;">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined" style="font-size:1.1rem;color:#0284c7;">info</span>
+                                <span style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:#0284c7;">First Bullet Note</span>
+                            </div>
+                            <p style="color:var(--text-dark);">The first bullet point "<strong>${escapeHtml(comparison.firstBulletIsTitle.text)}</strong>" could not be matched in the transcript. This is likely the slide title or section heading rather than transcript content.</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${hasUnmatched ? `
+                        <div class="warning-card">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined" style="font-size:1.1rem;">warning</span>
+                                <span style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Unmatched Bullets</span>
+                            </div>
+                            <p>The following bullet points could not be found in the transcript text:</p>
+                            <ul style="margin-top:8px;padding-left:20px;">
+                                ${comparison.unmatchedBullets.map(b => `<li style="font-size:13px;margin-top:4px;">${escapeHtml(b)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function exportHighlights() {
+    if (state.highlightedWords.length === 0) {
+        alert('No highlighted words to export!');
+        return;
+    }
+    
+    // Create simple text list (already in transcript order)
+    const textContent = state.highlightedWords.join('\n');
+    
+    // Create blob and download
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'red_word_list.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function escapeHtml(text) {   
+    const d = document.createElement('div');   
+    d.textContent = text;   
+    return d.innerHTML;   
+}   
+ 
+</script>    
+</body>    
+</html>

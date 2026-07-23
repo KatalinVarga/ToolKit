@@ -1,0 +1,76 @@
+/* ==========================================================================
+   Full-Width Fluid Layout & Proportional Scaling
+   ========================================================================== */
+
+/* 1. Force the root container to take 100% viewport width and reset margins */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden; /* Prevents horizontal scrollbars */
+  
+  /* 
+     Fluid Root Typography:
+     Scales dynamically based on screen width (1rem = 1% of viewport width).
+     Clamped between 14px (mobile) and 24px (4K/ultrawide displays).
+  */
+  font-size: clamp(14px, 1.1vw, 24px) !important;
+}
+
+/* 2. Make Header, Main, Sections, and Footers fill 100% available width */
+header, 
+nav, 
+main, 
+section, 
+footer, 
+.block, 
+.container, 
+.wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* 3. Proportional Font Hierarchy using 'rem' (Inherits from dynamic root font-size) */
+h1 {
+  font-size: 2.8rem !important;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 2.2rem !important;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 1.75rem !important;
+  line-height: 1.3;
+}
+
+h4, h5, h6 {
+  font-size: 1.3rem !important;
+  line-height: 1.35;
+}
+
+p, li, span, button, a, div {
+  font-size: 1rem; /* Base relative unit */
+  line-height: 1.6;
+}
+
+/* 4. Ensure images and media scale fluidly inside full-width blocks */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+.issue-label uppercase {
+ font-size: large;
+}
+.error-card message {
+ font-size: large;
+}
+.content-area{
+  font-size: large;
+}

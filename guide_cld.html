@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lecture Production Hub — Guide for Academics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #4285F4;
+    --blue-dim: rgba(66,133,244,0.08);
+    --blue-border: rgba(66,133,244,0.25);
+    --green: #34A853;
+    --green-dim: rgba(52,168,83,0.08);
+    --green-border: rgba(52,168,83,0.25);
+    --yellow: #FBBC05;
+    --red: #EA4335;
+    --red-dim: rgba(234,67,53,0.06);
+    --red-border: rgba(234,67,53,0.3);
+    --bg: #fafafa;
+    --white: #ffffff;
+    --text: #202124;
+    --muted: #5f6368;
+    --border: #e5e7eb;
+  }
+
+  html, body {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; }
+
+  /* ── Site Nav ── */
+/* ── Site Nav ── */
+.site-nav {
+  /* Sticky positioning & glassmorphism visuals */
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(250, 250, 250, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+
+  /* Flexbox alignment & layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes email to left, nav links to right */
+  gap: 32px;                      /* Ensures a minimum 32px separation between email & nav */
+  padding: 14px 32px;             /* Keeps the original horizontal breathing room */
+}
+
+/* Ensure the links inside <nav> stay neatly spaced inline */
+.site-nav nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;                      /* Controls spacing between individual nav items (Home, Checkers, etc.) */
+}
+  .site-nav .logo {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.01em;
+  }
+  .logo-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--blue);
+    display: inline-block;
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  /* Group Email link and Button on the left */
+.site-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Spacing between Email link and button */
+}
+
+/* Button Styling */
+.font-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #004056;
+  border: 1px solid var(--border, #cccccc);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.font-toggle-btn:hover {
+  background: #f0f4f8;
+  border-color: #2b91b3;
+}
+
+/* Active State (When responsive.css is injected) */
+/* .font-toggle-btn.active {
+  background: #004056;
+  color: #ffffff;
+  border-color: #004056;
+} */
+
+.font-toggle-btn .material-symbols-outlined {
+  font-size: 1.1em;
+}
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.82); }
+  }
+  /* Container Link */
+.email-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* Adds space between the dot and text */
+  color: #004056;
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/* Base Dot */
+.logo-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  background-color: #2b91b3; /* Main dot colour */
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Pulsing Outer Ring */
+.logo-dot::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #2b91b3;
+  border-radius: 50%;
+  z-index: -1;
+  animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Pulse Animation Keyframes */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+  .site-nav nav { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+  .site-nav nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .site-nav nav a::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -4px;
+    width: 0; height: 2px;
+    background: var(--blue);
+    transition: width 0.25s;
+    border-radius: 2px;
+  }
+  .site-nav nav a:hover, .site-nav nav a.active { color: var(--blue); }
+  .site-nav nav a:hover::after, .site-nav nav a.active::after { width: 100%; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 64px 40px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 18px;
+  }
+  .eyebrow span { width: 22px; height: 2px; background: var(--blue); display: block; border-radius: 2px; }
+  h1 {
+    font-size: clamp(2.1rem, 4.2vw, 3.1rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+  h1 em { font-style: normal; color: var(--blue); }
+  .hero-sub {
+    font-size: 1.08rem;
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 auto 12px;
+  }
+  .hero-sub2 {
+    font-size: 0.98rem;
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* ── Section shell ── */
+  section.block {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 44px 40px;
+  }
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+  .section-label span { width: 18px; height: 2px; background: var(--blue); display: block; border-radius: 2px; }
+  h2 {
+    font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 0.98rem;
+    /* max-width: 720px; */
+    margin-bottom: 28px;
+  }
+
+  /* ── Video row ── */
+  .video-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .video-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .video-card-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .video-card-label .material-symbols-outlined { color: var(--blue); font-size: 20px; }
+  .video-frame {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    background: #111;
+  }
+  .video-frame iframe {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
+  }
+  .video-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.6);
+    background: repeating-linear-gradient(135deg, #1a1a1a, #1a1a1a 10px, #151515 10px, #151515 20px);
+  }
+  .video-placeholder .material-symbols-outlined { font-size: 34px; color: rgba(255,255,255,0.35); }
+  .video-placeholder p { font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+  .video-note { padding: 12px 18px; font-size: 0.82rem; color: var(--muted); }
+
+  /* ── Highlight boxes ── */
+  .tip-box {
+    background: var(--green-dim);
+    border: 1px solid var(--green-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .tip-box strong { color: #1e7e34; }
+  .warn-box {
+    background: var(--red-dim);
+    border: 1px solid var(--red-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .warn-box strong { color: #c5221f; }
+  .warn-box .material-symbols-outlined { color: var(--red); font-size: 18px; vertical-align: -4px; margin-right: 4px; }
+
+  /* ── Guide grid ── */
+  .guide-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .guide-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+.guide-card ul .highlight {
+  font-weight: bold;
+  color: black !important;        /* Blue text */
+  background-color: #f2f4f9;       /* Light blue background tint */
+  padding: 2px 6px;                /* Padding around highlighted text */
+  border-radius: 4px;              /* Soft rounded corners */
+  display: inline-block;           /* Helps padding render cleanly */
+  line-height: 1.3;
+}
+
+  /* Ensure non-bold text remains standard body colour */
+.guide-card ul li {
+  color: var(--text-main, #333333); 
+}
+  .guide-card-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .guide-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--blue-dim);
+    border: 1px solid var(--blue-border);
+    flex-shrink: 0;
+  }
+  .guide-icon .material-symbols-outlined { color: var(--blue); font-size: 22px; }
+  .guide-card h3 { font-size: 1.1rem; font-weight: 700; }
+  .guide-card ul { margin: 0 0 0 18px; }
+  .guide-card li { margin-bottom: 8px; font-size: 0.94rem; color: var(--text); }
+  .guide-card li b { color: var(--text); }
+  .guide-card p.small-note { font-size: 0.84rem; color: var(--muted); margin-top: 10px; }
+
+  /* ── Timeline strip ── */
+  .timeline-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .timeline-item {
+    flex: 1 1 160px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .timeline-item .step-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .timeline-item p { font-size: 0.88rem; color: var(--text); }
+
+  /* ── Tool cards ── */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .tool-card {
+    text-decoration: none;
+    color: inherit;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+  }
+  .tool-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(66,133,244,0.12);
+    border-color: var(--blue-border);
+  }
+  .tool-card .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 4px;
+  }
+  .tool-card .card-icon .material-symbols-outlined { font-size: 20px; }
+  .tool-card h4 { font-size: 1.02rem; font-weight: 700; }
+  .tool-card p { font-size: 0.86rem; color: var(--muted); }
+  .tool-card .card-arrow {
+    margin-top: auto;
+    color: var(--blue);
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  /* ── Images row (decorative) ── */
+  .images-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .img-block { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 4/3; }
+  .img-block img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; transition: transform 0.3s; }
+  .img-block img:hover { transform: scale(1.04); }
+
+  #img-lightbox {
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.85);
+    align-items: center; justify-content: center;
+  }
+  #img-lightbox img { max-width: 88%; max-height: 85%; border-radius: 10px; }
+  #lightbox-close {
+    position: absolute; top: 24px; right: 36px;
+    color: #fff; font-size: 2.2rem; cursor: pointer; line-height: 1;
+  }
+
+  footer.site-footer {
+    text-align: center;
+    padding: 32px 20px 48px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 900px) {
+    .video-row, .guide-grid { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: 1fr 1fr; }
+    .images-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .site-nav { flex-direction: column; gap: 10px; align-items: flex-start; }
+  }
+</style>
+
+</head>
+<body>
+
+  <!-- Site Nav -->
+<!-- Site Nav -->
+<div class="site-nav">
+  <a href="mailto:Technical%20MLA%20%3Ctechnical%40mla.ac.uk%3E?subject=Technical%20Support%20Query" class="email-link">
+    <span class="logo-dot"></span>
+    Email us
+  </a>
+  
+  <nav class="nav-links">
+    <a href="guide_cld.html" class="active">Home</a>
+    <a href="transcript_checker.html">Transcript Checker</a>
+    <a href="ppt_checker.html">PowerPoint Checker</a>
+    <a href="comparison.html">Comparison Tool</a>
+    <a href="ai_voiceover.html">AI Voiceover Guide</a>
+  </nav>
+</div>
+<!-- Display Mode / Text Size Button -->
+    <button type="button" class="font-toggle-btn" id="fontToggleBtn" onclick="toggleResponsiveCSS()">
+      <span class="material-symbols-outlined">format_size</span>
+      <span class="btn-text">Text Size: Standard</span>
+    </button>
+  </div>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow"><span></span> A Guide For Academics</div>
+    <h1>Everything you need to create your <em>lecture transcripts &amp; slides</em></h1>
+    <p class="hero-sub">Welcome to your practical toolkit for reviewing transcripts and PowerPoint slides against our production standards. 
+      Use this site to prepare your materials,
+       run quality checks, and ensure your content is seamless and ready to be crafted into polished video lectures.</p>
+  </div>
+
+  <!-- Videos -->
+<section class="block block-single">
+  <div class="section-label"><span></span>Start Here</div>
+  <h2>Watch before you begin</h2>
+  <p class="section-sub">A short walkthrough of this whole process.</p>
+
+  <div class="video-card">
+    <div class="video-card-label">
+      <span class="material-symbols-outlined">play_circle</span> Main Guide: How This Works
+    </div>
+    <div class="video-frame">
+    <iframe 
+  src="https://www.youtube.com/embed/Yvsx-dSLIzQ" 
+  title="Main Explainer Guide" 
+  referrerpolicy="strict-origin-when-cross-origin"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowfullscreen>
+</iframe>
+    </div>
+    <div class="video-note">A walkthrough of writing transcripts, building slides, and using the checker tools.</div>
+  </div>
+</section>
+
+  <!-- Guide -->
+  <section class="block">
+    <div class="section-label"><span></span>The Essentials</div>
+    <h2>How to write your transcript &amp; build your slides</h2>
+    <p class="section-sub">The full manual has a lot more detail — this is the short version, in plain terms, covering what actually matters most.
+         <br> Download the full guide here: 
+    <a href="pdfs/Module Creation Guide for Academics.pdf" download target="_blank">
+      <span class="material-symbols-outlined">download</span>Guide (PDF)
+    </a>
+      </p>
+        <!-- Download Link Paragraph -->
+ 
+    <div class="guide-grid">
+      <!-- Transcript card -->
+      <div class="guide-card">
+        <div class="guide-card-head">
+          <div class="guide-icon"><span class="material-symbols-outlined">description</span></div>
+          <h3>Writing Your Transcript</h3>
+        </div>
+        <ul>
+          <li> <span class="highlight">Write it exactly as you'll say it</span><br>Word for word, like you're talking to a room of students. 
+            Keep it conversational, not like an essay.</li>
+            <li> <span class="highlight">Avoid idioms, jargon, and informal punctuation</span><br>Idioms like "get across" or "figure out" 
+              do not translate well for international students or AI voice. Use clear, 
+          direct academic language. Avoid ellipses (…), 
+          exclamation marks, and brackets with stage directions.</li>
+          <li><span class="highlight">Use British English throughout</span> <br>If you use ChatGPT or similar tools to help draft it, 
+            double-check and remove any American spellings, long dashes, or overly formal phrasing.</li>
+             <li> <span class="highlight">Do not reference specific lecture or chapter numbers</span> <br>Avoid writing "as we covered in Lecture 3" — 
+          content may be reordered or reused in different contexts. 
+          Reference topics by name instead: 
+          "as we discussed when looking at research design."</li>
+          <li> <span class="highlight"> Aim for about>2,000 words per lecture</span> <br>(roughly 100 words = 1 minute of speaking).</li>
+          <li> <span class="highlight">Mark each new section with "Slide 1", "Slide 2" etc.</span>  <br>so it lines up with your PowerPoint 
+            and helps production follow along.</li>
+          <li> <span class="highlight">Submit as a Word document (.doc/.docx)</span><br> One file per lecture, named by chapter and
+             lecture number (e.g. 1.5 for Chapter 1, Lecture 5).</li>
+          <li>  <span class="highlight">Write a complete, word-for-word spoken script</span><br>Every sentence must be written in full as if live-subtitled, as it
+             directly drives the recorded or AI voiceover. Minor phrasing tweaks on the day are fine, but structural edits 
+             cannot be made after submission.</li>
+          <li><span class="highlight">Read it aloud before you submit </span><br>It's the easiest way to catch awkward phrasing.</li>
+        </ul>
+        <p class="small-note">Deadline: submit at least 2 weeks before your recording date.</p>
+      </div>
+
+      <!-- PPT card -->
+      <div class="guide-card">
+        <div class="guide-card-head">
+          <div class="guide-icon"><span class="material-symbols-outlined">present_to_all</span></div>
+          <h3>Building Your PowerPoint</h3>
+        </div>
+        <ul>
+                   
+          <li> <span class="highlight">This PowerPoint is a storyboard for production only</span><br>It won't be shown to students, so don't worry about design.</li>
+          <li><span class="highlight">Every slide needs a clear title</span>.</li>
+          <li> <span class="highlight">Use short, keyword-based bullet points</span> <br>Avoid full sentences unless it's a brief, accurately-attributed quote.
+          Recommended: <b>10–12 word limit per bullet</b> and a <b>6-bullet </b>maximum per slide.</li>
+            <li><span class="highlight">Recommended deck size: 20 to 25 slides</span><br>
+              Aim for 20–25 slides to match a 20-minute lecture.
+              </li>
+          <li><span class="highlight">Match the wording on your slide to your transcript </span> wording as closely as possible.</li>
+          <li> <span class="highlight">Write in British English</span><br>Check spelling and grammar carefully — slide text is copied straight into the final video.</li>
+          <li><span class="highlight">Only use images/data you have the rights to: </span><br>your own work, public domain, or Creative Commons (credited). <b>Avoid copyrighted material</b> — if there's no alternative, contact the production team before adding it.</li>
+          <li> <span class="highlight">Images should be high-resolution (1000px+)</span> <br>So they don't look blurry or pixelated in the video.</li>
+        </ul>
+        <p class="small-note">Deadline: submit at least 2 weeks before your recording date.</p>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong><span class="material-symbols-outlined">warning</span>Copyright — please don't skip this:</strong>
+      Avoid using copyrighted images, data, or text wherever possible. If you're not sure whether something is safe to use, contact the production team before adding it to your script or slides.
+  
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="block">
+    <div class="section-label"><span></span>Good To Know</div>
+    <h2>Roughly how the timeline works</h2>
+    <div class="timeline-strip">
+      <div class="timeline-item"><span class="step-num">Step 1</span><p>Agree your module structure with your Programme Manager — about 1 month before other deliverables are due.</p></div>
+      <div class="timeline-item"><span class="step-num">Step 2</span><p>Submit your transcripts and PowerPoints — at least 2 weeks before recording.</p></div>
+      <div class="timeline-item"><span class="step-num">Step 3</span><p>Record your voiceover and any greenscreen segments with the production team.</p></div>
+      <div class="timeline-item"><span class="step-num">Step 4</span><p>Review the edited videos via Frame.io — within 2 weeks of receiving them.</p></div>
+    </div>
+    <div class="tip-box">
+      <strong>Tip:</strong> the whole process usually takes 4–7 months depending on module size — staying in touch with your Programme Manager as things come up keeps everything on track.
+    </div>
+  </section>
+
+  <!-- Tools -->
+  <section class="block">
+    <div class="section-label"><span></span>Check Your Work</div>
+    <h2>Use these tools before you submit</h2>
+    <p class="section-sub">Quick, automated checks against production standards — catch issues before they reach the team.</p>
+
+    <div class="tools-grid">
+      <a href="transcript_checker.html" class="tool-card">
+        <div class="card-icon" style="background:var(--blue-dim);border:1px solid var(--blue-border)">
+          <span class="material-symbols-outlined" style="color:var(--blue)">description</span>
+        </div>
+        <h4>Transcript Checker</h4>
+        <p>Checks tone, spelling and length so it's easy for students to follow.</p>
+        <div class="card-arrow">Open <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></div>
+      </a>
+
+      <a href="ppt_checker.html" class="tool-card">
+        <div class="card-icon" style="background:var(--green-dim);border:1px solid var(--green-border)">
+          <span class="material-symbols-outlined" style="color:var(--green)">present_to_all</span>
+        </div>
+        <h4>PowerPoint Checker</h4>
+        <p>Reviews slide bullets for length, spelling, and production guidance.</p>
+        <div class="card-arrow">Open <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></div>
+      </a>
+
+      <a href="comparison.html" class="tool-card">
+        <div class="card-icon" style="background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3)">
+          <span class="material-symbols-outlined" style="color:#8b5cf6">compare_arrows</span>
+        </div>
+        <h4>Comparison Tool</h4>
+        <p>Matches your slide bullets against transcript wording side by side.</p>
+        <div class="card-arrow">Open <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></div>
+      </a>
+
+      <a href="ai_voiceover.html" class="tool-card">
+        <div class="card-icon" style="background:rgba(251,188,5,0.14);border:1px solid rgba(251,188,5,0.35)">
+          <span class="material-symbols-outlined" style="color:#b7860b">mic</span>
+        </div>
+        <h4>AI Voiceover Guide</h4>
+        <p>How to record a clean voice sample for AI voice cloning, plus a sample script.</p>
+        <div class="card-arrow">Open <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Decorative images -->
+  <section class="block">
+    <div class="images-row">
+      <div class="img-block"><img src="imgs/laptop_bullet_points.png" alt="Slide bullet best practice" class="clickable-img"/></div>
+      <div class="img-block"><img src="imgs/content.jpg" alt="Working on transcript content" class="clickable-img"/></div>
+      <div class="img-block"><img src="imgs/compass.jpg" alt="Guidance and direction" class="clickable-img"/></div>
+    </div>
+  </section>
+
+  <div id="img-lightbox" style="display:none;">
+    <span id="lightbox-close">&times;</span>
+    <img id="lightbox-img" src="" alt="Enlarged Image">
+  </div>
+
+  <footer class="site-footer">
+    Lecture Production Hub · A quick-reference guide for academics working with the production team
+  </footer>
+
+  <script>
+    const lightbox = document.getElementById('img-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const closeBtn = document.getElementById('lightbox-close');
+
+    document.querySelectorAll('.clickable-img').forEach(img => {
+      img.addEventListener('click', e => {
+        e.stopPropagation();
+        lightbox.style.display = 'flex';
+        lightboxImg.src = img.src;
+      });
+    });
+    closeBtn.addEventListener('click', () => { lightbox.style.display = 'none'; });
+    lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.style.display = 'none'; });
+
+
+function toggleResponsiveCSS() {
+  const btn = document.getElementById('fontToggleBtn');
+  const btnText = btn.querySelector('.btn-text');
+  let linkTag = document.getElementById('responsive-css-link');
+
+  if (linkTag) {
+    // If responsive.css is already active -> REMOVE IT
+    linkTag.remove();
+    btn.classList.remove('active');
+    btnText.textContent = 'Text Size: Standard';
+    localStorage.setItem('responsiveCSSActive', 'false');
+  } else {
+    // If not active -> INJECT IT INTO <HEAD>
+    linkTag = document.createElement('link');
+    linkTag.id = 'responsive-css-link';
+    linkTag.rel = 'stylesheet';
+    linkTag.href = 'responsive.css';
+    document.head.appendChild(linkTag);
+
+    btn.classList.add('active');
+    btnText.textContent = 'Text Size: Large';
+    localStorage.setItem('responsiveCSSActive', 'true');
+  }
+}
+
+// Keep active preference across page navigations
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('responsiveCSSActive') === 'true') {
+    toggleResponsiveCSS();
+  }
+});
+
+
+  </script>
+</body>
+</html>
